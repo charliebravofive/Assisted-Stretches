@@ -10,6 +10,7 @@ app.use(cors({ origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], crede
 app.use(express.json());
 app.use(cookieParser());
 
+app.use('/api/payments',   require('./routes/payments'));
 app.use('/api/gift-cards', require('./routes/giftCards'));
 app.use('/api/bookings',   require('./routes/bookings'));
 app.use('/api/contact',    require('./routes/contact'));

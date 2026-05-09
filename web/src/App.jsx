@@ -6,11 +6,15 @@ import { useJsonLd } from "./useJsonLd.js";
 // ─── ROUTING ────────────────────────────────────────────────
 const PAGES = {
   home: "home",
+  benefits: "benefits",
+  about: "about",
   session: "session",
   fivePack: "5-pack",
   tenPack: "10-pack",
   giftCards: "gift-cards",
   faq: "faq",
+  booking: "booking",
+  contact: "contact",
 };
 
 // ─── SHARED DATA ────────────────────────────────────────────
@@ -201,7 +205,7 @@ function Container({ children, style = {} }) {
 
 function Section({ children, style = {}, dark = false, id }) {
   return (
-    <section id={id} style={{ padding: "88px 0", background: dark ? "var(--forest-ink)" : "transparent", color: dark ? "var(--bone)" : "var(--forest-ink)", ...style }}>
+    <section id={id} style={{ padding: "56px 0", background: dark ? "var(--forest-ink)" : "transparent", color: dark ? "var(--bone)" : "var(--forest-ink)", ...style }}>
       <Container>{children}</Container>
     </section>
   );
@@ -213,9 +217,9 @@ function SectionLabel({ text }) {
 
 function SectionTitle({ children, sub }) {
   return (
-    <div style={{ marginBottom: sub ? 16 : 36 }}>
-      <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 400, lineHeight: 1.12, color: "inherit", letterSpacing: "-0.01em", maxWidth: 720 }}>{children}</h2>
-      {sub && <p style={{ fontSize: 16, lineHeight: 1.65, color: "var(--text-secondary)", marginTop: 16, maxWidth: 580 }}>{sub}</p>}
+    <div style={{ marginBottom: sub ? 12 : 24 }}>
+      <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 400, lineHeight: 1.12, color: "inherit", letterSpacing: "-0.01em", maxWidth: 720 }}>{children}</h2>
+      {sub && <p style={{ fontSize: 15.5, lineHeight: 1.65, color: "var(--text-secondary)", marginTop: 12, maxWidth: 580 }}>{sub}</p>}
     </div>
   );
 }
@@ -332,7 +336,7 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
   const [activeLabel, setActiveLabel] = useState(null);
 
   const scrollToSection = (id) => {
-    setPage(PAGES.session);
+    setPage(PAGES.home);
     setTimeout(() => {
       const container = scrollRef?.current;
       const el = document.getElementById(id);
@@ -346,12 +350,12 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
 
   const navItems = [
     { label: "Home",        type: "page",   target: PAGES.home },
-    { label: "Benefits",    type: "scroll", target: "benefits" },
-    { label: "About",       type: "scroll", target: "about" },
-    { label: "Booking",     type: "book" },
+    { label: "Benefits",    type: "page",   target: PAGES.benefits },
+    { label: "About",       type: "page",   target: PAGES.about },
+    { label: "Booking",     type: "page",   target: PAGES.booking },
     { label: "Gift Cards",  type: "page",   target: PAGES.giftCards },
     { label: "FAQs",        type: "page",   target: PAGES.faq },
-    { label: "Contact",     type: "contact" },
+    { label: "Contact",     type: "page",   target: PAGES.contact },
   ];
 
   const handleNav = (item) => {
@@ -368,7 +372,7 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
 
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#1A1816", borderBottom: "1px solid rgba(240,236,230,0.08)", transition: "all 0.35s ease" }}>
-      <div style={{ width: "100%", padding: "18px 28px 18px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ width: "100%", padding: "2px 28px 2px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div onClick={() => setPage(PAGES.session)} style={{ cursor: "pointer", flexShrink: 0 }}>
           <BrandLogo height={224} />
         </div>
@@ -449,15 +453,15 @@ function BenefitCard({ benefit }) {
 
 function BenefitsSection() {
   return (
-    <Section id="benefits" style={{ padding: "52px 0" }}>
+    <Section id="benefits" style={{ padding: "36px 0" }}>
       <SectionLabel text="What it does for you" />
-      <SectionTitle sub="Whether you're chasing a PB, recovering from desk life, or just want to bend down without grunting — here's what 60 minutes on the table can do.">
+      <SectionTitle sub="Whether you're chasing a personal best, recovering from desk life, or just want to move with more freedom. Here's what 60 minutes on the table can do.">
         Designed for people who sit too much, train too hard, or sleep too little.
       </SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, marginTop: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginTop: 18 }}>
         {BENEFITS.map((b, i) => <BenefitCard key={i} benefit={b} />)}
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px 64px", marginTop: 24, padding: "16px 0", borderTop: "1px solid var(--sand)" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px 64px", marginTop: 16, padding: "14px 0", borderTop: "1px solid var(--sand)" }}>
         {[{ num: "+22%", label: "avg. hamstring range gain per session" }, { num: "94%", label: "of clients book again within 2 weeks" }, { num: "4.9/5", label: "across 180+ Google reviews" }].map((s, i) => (
           <div key={i} style={{ textAlign: "center" }}>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--deep-clay)", lineHeight: 1, fontWeight: 400 }}>{s.num}</div>
@@ -474,9 +478,9 @@ function HowItWorksSection() {
     <Section style={{ background: "var(--white)" }}>
       <SectionLabel text="How it works" />
       <SectionTitle>What happens in a 60-minute session</SectionTitle>
-      <div style={{ display: "flex", flexDirection: "column", marginTop: 36, maxWidth: 700 }}>
+      <div style={{ display: "flex", flexDirection: "column", marginTop: 22, maxWidth: 700 }}>
         {STEPS.map((step, i) => (
-          <div key={i} style={{ display: "grid", gridTemplateColumns: "72px 1fr", gap: 20, padding: "28px 0", borderBottom: i < STEPS.length - 1 ? "1px solid var(--bone-dark)" : "none", alignItems: "start" }}>
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "60px 1fr", gap: 16, padding: "18px 0", borderBottom: i < STEPS.length - 1 ? "1px solid var(--bone-dark)" : "none", alignItems: "start" }}>
             <div style={{ width: 40, height: 40, borderRadius: "50%", border: "1.5px solid var(--deep-clay)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontSize: 18, color: "var(--deep-clay)", fontWeight: 400 }}>{i + 1}</div>
             <div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
@@ -488,8 +492,8 @@ function HowItWorksSection() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 72 }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 26, marginBottom: 28, fontWeight: 400 }}>How assisted stretching is different</h2>
+      <div style={{ marginTop: 40 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 24, marginBottom: 18, fontWeight: 400 }}>How assisted stretching is different</h2>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, background: "var(--bone)", borderRadius: 10, overflow: "hidden" }}>
             <thead>
@@ -521,10 +525,10 @@ function FAQSection() {
     <Section id="faq">
       <SectionLabel text="Common questions" />
       <SectionTitle>The questions everyone asks</SectionTitle>
-      <div style={{ maxWidth: 660, marginTop: 28 }}>
+      <div style={{ maxWidth: 660, marginTop: 18 }}>
         {FAQS.map((faq, i) => (
           <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
-            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "22px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left" }}>
+            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left" }}>
               {faq.q}
               <span style={{ fontSize: 22, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, marginLeft: 20, fontWeight: 300 }}>+</span>
             </button>
@@ -543,11 +547,11 @@ function ReviewsSection({ reviews = REVIEWS, title, sub }) {
     <Section style={{ background: "var(--white)" }}>
       <SectionLabel text="What people say" />
       <SectionTitle sub={sub || "180+ verified Google reviews. Here's what people say after their first session."}>{title || "Don't take our word for it."}</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, marginTop: 36 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginTop: 22 }}>
         {reviews.map((r, i) => (
-          <div key={i} style={{ background: "var(--bone)", borderRadius: 10, padding: 36, border: "1px solid var(--bone-dark)" }}>
-            <div style={{ color: "var(--terracotta)", fontSize: 14, marginBottom: 18, letterSpacing: 3 }}>{"★".repeat(r.stars)}</div>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--forest-ink)", fontFamily: "var(--font-display)", fontStyle: "italic", marginBottom: 22, fontWeight: 400 }}>"{r.text}"</p>
+          <div key={i} style={{ background: "var(--bone)", borderRadius: 10, padding: 24, border: "1px solid var(--bone-dark)" }}>
+            <div style={{ color: "var(--terracotta)", fontSize: 14, marginBottom: 12, letterSpacing: 3 }}>{"★".repeat(r.stars)}</div>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--forest-ink)", fontFamily: "var(--font-display)", fontStyle: "italic", marginBottom: 14, fontWeight: 400 }}>"{r.text}"</p>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest-ink)" }}>{r.name}</div>
               <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>{r.label}</div>
@@ -562,8 +566,10 @@ function ReviewsSection({ reviews = REVIEWS, title, sub }) {
 function PractitionerBio() {
   return (
     <Section id="about" style={{ background: "var(--white)" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center" }} className="bio-grid">
-        <EditorialImage label="Close-crop, natural light — practitioner's hands guiding a shoulder stretch. Skin, fabric, linen, wood." height={380} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }} className="bio-grid">
+        <div style={{ borderRadius: 14, height: 320, overflow: "hidden", background: "var(--white)" }}>
+          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
+        </div>
         <div>
           <SectionLabel text="Your practitioner" />
           <p style={{ fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.45, marginBottom: 20, fontWeight: 400, fontStyle: "italic", color: "var(--forest-ink)" }}>
@@ -572,7 +578,7 @@ function PractitionerBio() {
           <p style={{ fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.6, fontStyle: "italic", fontWeight: 400, color: "var(--text-secondary)" }}>
             Clients are constantly looking for ways to move better, recover faster, and prevent injuries. I am a Certified Stretch Practitioner and work hands-on with clients that want to integrate evidence based assisted stretching techniques into their health and wellness routine.
           </p>
-          <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid var(--bone-dark)", textAlign: "center" }}>
+          <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--bone-dark)", textAlign: "center" }}>
             <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontStyle: "italic", color: "var(--deep-clay)", lineHeight: 1.5 }}>
               "Your hamstrings shorten when you sit. We lengthen them."
             </div>
@@ -596,10 +602,10 @@ function ObjectionHandlers() {
     <Section>
       <SectionLabel text="Still wondering?" />
       <SectionTitle>Common hesitations</SectionTitle>
-      <div style={{ maxWidth: 660, marginTop: 20 }}>
+      <div style={{ maxWidth: 660, marginTop: 14 }}>
         {items.map((item, i) => (
           <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
-            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "22px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left" }}>
+            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left" }}>
               "{item.q}"
               <span style={{ fontSize: 22, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, marginLeft: 20, fontWeight: 300 }}>+</span>
             </button>
@@ -617,28 +623,28 @@ function PricingLadder({ setPage, highlight, onBook }) {
   const plans = [
     { name: "Single Session", price: "$125", per: "$125", save: "—", validity: "Use anytime", includes: "1 × 60-min session", best: "Trying it out", page: PAGES.session },
     { name: "5-Pack", price: "$575", per: "$115", save: "$50", validity: "6 months", includes: "5 × 60-min sessions", best: "Building a habit", page: PAGES.fivePack, recommended: true },
-    { name: "10-Pack", price: "$1,000", per: "$100", save: "$250", validity: "12 months", includes: "10 × 60-min sessions + guest pass", best: "Athletes & regulars", page: PAGES.tenPack },
+    { name: "10-Pack", price: "$1,000", per: "$100", save: "$250", validity: "12 months", includes: "10 × 60-min sessions", best: "Athletes & regulars", page: PAGES.tenPack },
   ];
   return (
     <Section>
       <SectionLabel text="Pricing" />
       <SectionTitle>Choose your path</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, marginTop: 36 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginTop: 22 }}>
         {plans.map((p, i) => {
           const isHL = highlight === p.page || (!highlight && p.recommended);
           return (
-            <div key={i} style={{ background: isHL ? "var(--forest-ink)" : "var(--white)", color: isHL ? "var(--bone)" : "var(--forest-ink)", borderRadius: 14, padding: 40, border: isHL ? "none" : "1px solid var(--sand)", position: "relative", transition: "transform 0.3s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"} onMouseLeave={e => e.currentTarget.style.transform = "none"}>
+            <div key={i} style={{ background: isHL ? "var(--forest-ink)" : "var(--white)", color: isHL ? "var(--bone)" : "var(--forest-ink)", borderRadius: 14, padding: 28, border: isHL ? "none" : "1px solid var(--sand)", position: "relative", transition: "transform 0.3s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"} onMouseLeave={e => e.currentTarget.style.transform = "none"}>
               {p.recommended && <div style={{ position: "absolute", top: -11, left: 28, background: "var(--terracotta)", color: "var(--bone)", fontSize: 10.5, fontWeight: 600, letterSpacing: "0.1em", padding: "5px 16px", borderRadius: 20 }}>RECOMMENDED</div>}
-              <div style={{ fontSize: 13.5, fontWeight: 500, marginBottom: 10, opacity: 0.7 }}>{p.name}</div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 44, marginBottom: 4, fontWeight: 400 }}>{p.price}</div>
-              <div style={{ fontSize: 13.5, opacity: 0.6, marginBottom: 28 }}>{p.per} per session</div>
-              <div style={{ fontSize: 13.5, lineHeight: 2.3, borderTop: `1px solid ${isHL ? "rgba(242,237,228,0.15)" : "var(--bone-dark)"}`, paddingTop: 22 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500, marginBottom: 8, opacity: 0.7 }}>{p.name}</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 38, marginBottom: 4, fontWeight: 400 }}>{p.price}</div>
+              <div style={{ fontSize: 13.5, opacity: 0.6, marginBottom: 18 }}>{p.per} per session</div>
+              <div style={{ fontSize: 13.5, lineHeight: 2.1, borderTop: `1px solid ${isHL ? "rgba(242,237,228,0.15)" : "var(--bone-dark)"}`, paddingTop: 16 }}>
                 <div><span style={{ opacity: 0.5 }}>Save:</span> {p.save}</div>
                 <div><span style={{ opacity: 0.5 }}>Valid:</span> {p.validity}</div>
                 <div><span style={{ opacity: 0.5 }}>Includes:</span> {p.includes}</div>
                 <div><span style={{ opacity: 0.5 }}>Best for:</span> {p.best}</div>
               </div>
-              <button onClick={() => onBook(PRODUCTS[i])} style={{ marginTop: 28, width: "100%", padding: "14px 0", borderRadius: 6, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 14.5, fontWeight: 500, background: "var(--terracotta)", color: "var(--bone)", border: "none", transition: "opacity 0.25s", letterSpacing: "0.02em" }} onMouseEnter={e => e.target.style.opacity = 0.88} onMouseLeave={e => e.target.style.opacity = 1}>Book {p.name}</button>
+              <button onClick={() => onBook(PRODUCTS[i])} style={{ marginTop: 18, width: "100%", padding: "12px 0", borderRadius: 6, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 14.5, fontWeight: 500, background: "var(--terracotta)", color: "var(--bone)", border: "none", transition: "opacity 0.25s", letterSpacing: "0.02em" }} onMouseEnter={e => e.target.style.opacity = 0.88} onMouseLeave={e => e.target.style.opacity = 1}>Book {p.name}</button>
             </div>
           );
         })}
@@ -695,48 +701,27 @@ function HomePage({ onBook, onGiftBook }) {
   });
   return (
     <>
-      {/* About — top of page */}
-      <Section style={{ background: "var(--white)", paddingTop: 72 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "start" }} className="hero-grid">
-          <div>
-            <SectionLabel text="About Assisted Stretches" />
-            <SectionTitle>Founded on a simple observation.</SectionTitle>
-            <p style={{ fontSize: 15.5, lineHeight: 1.8, color: "var(--text-secondary)", marginTop: 20 }}>
-              Most people are tighter than they need to be, and nothing they're doing on their own is fixing it. Foam rollers don't reach. Massage feels good but doesn't change range.
-            </p>
-            <p style={{ fontSize: 15.5, lineHeight: 1.8, color: "var(--text-secondary)", marginTop: 16 }}>
-              What works is someone trained taking your body through stretches you can't execute on yourself — using contract-relax cycles, precise positioning, and decades of combined technique. That's what we do. Nothing else.
-            </p>
-            <p style={{ fontSize: 15.5, lineHeight: 1.8, color: "var(--text-secondary)", marginTop: 16 }}>
-              We built Assisted Stretches for people who want results they can feel in their hips the next morning, their shoulders in their next workout, and their posture within weeks. One practitioner, one body at a time.
-            </p>
-          </div>
-          <div style={{ paddingTop: 12 }}>
-            <div style={{ borderRadius: 14, height: 400, overflow: "hidden" }}>
-              <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* Hero */}
-      <Section style={{ paddingTop: 72, paddingBottom: 72 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="hero-grid">
+      {/* Session pricing hero — top of page */}
+      <Section style={{ paddingTop: 40, paddingBottom: 48 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "center" }} className="hero-grid">
           <div>
             <div className="fade-up" style={{ opacity: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 22 }}>ONE-ON-ONE · PNF TECHNIQUE · BRISBANE STUDIO</div>
+              <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>ONE-ON-ONE · 60 MINUTES · BRISBANE STUDIO</div>
             </div>
-            <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(40px, 5.5vw, 62px)", fontWeight: 400, lineHeight: 1.04, letterSpacing: "-0.02em", marginBottom: 28, opacity: 0, color: "var(--forest-ink)" }}>
-              Stretches you can't do alone.
+            <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0, color: "var(--forest-ink)" }}>
+              Stretch deeper than you can on your own.
             </h1>
-            <p className="fade-up delay-2" style={{ fontSize: 16.5, lineHeight: 1.75, color: "var(--text-secondary)", maxWidth: 480, marginBottom: 36, opacity: 0 }}>
-              One-on-one assisted stretching therapy using PNF techniques. Deeper mobility, faster recovery, lasting flexibility — while you stay completely relaxed.
+            <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
+              A guided 60-minute assisted stretch session using PNF technique that goes where solo stretching cannot — hamstrings, hips, shoulders, lower back. You lie down. We do the work.
             </p>
-            <div className="fade-up delay-3" style={{ display: "flex", flexDirection: "column", gap: 16, opacity: 0 }}>
-              <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <div className="fade-up delay-3" style={{ fontSize: 14.5, color: "var(--text-secondary)", marginBottom: 20, opacity: 0 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 30, color: "var(--forest-ink)", fontWeight: 400 }}>$125</span>
+            </div>
+            <div className="fade-up delay-4" style={{ display: "flex", flexDirection: "column", gap: 12, opacity: 0 }}>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <PrimaryButton large onClick={() => onBook(PRODUCTS[0])}>Book a session — $125</PrimaryButton>
               </div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <button onClick={() => onBook(PRODUCTS[1])} style={{ background: "none", border: "1.5px solid var(--sand)", borderRadius: 6, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 400, color: "var(--text-secondary)", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--deep-clay)"; e.currentTarget.style.color = "var(--forest-ink)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--sand)"; e.currentTarget.style.color = "var(--text-secondary)"; }}>5-pack — $115/session</button>
                 <button onClick={() => onBook(PRODUCTS[2])} style={{ background: "none", border: "1.5px solid var(--sand)", borderRadius: 6, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 400, color: "var(--text-secondary)", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--deep-clay)"; e.currentTarget.style.color = "var(--forest-ink)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--sand)"; e.currentTarget.style.color = "var(--text-secondary)"; }}>10-pack — $100/session</button>
               </div>
@@ -744,7 +729,7 @@ function HomePage({ onBook, onGiftBook }) {
           </div>
           <div className="fade-in delay-3" style={{ opacity: 0 }}>
             <div style={{ borderRadius: 14, height: 480, overflow: "hidden" }}>
-              <img src="/about-stretching.jpg" alt="Practitioner guiding an assisted stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", filter: "grayscale(100%) contrast(1.05)" }} />
+              <img src="/session-hero.jpg" alt="Practitioner guiding a stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)", transform: "scale(1.5) translateY(-22%)", transformOrigin: "center center" }} />
             </div>
           </div>
         </div>
@@ -752,7 +737,6 @@ function HomePage({ onBook, onGiftBook }) {
 
       {/* What makes it different */}
       <Section dark>
-        <SectionLabel text="The missing category" />
         <div style={{ maxWidth: 720 }}>
           <SectionTitle>Not massage. Not physio. Not yoga.</SectionTitle>
           <p style={{ fontSize: 16, lineHeight: 1.8, opacity: 0.82, marginTop: 24 }}>
@@ -765,14 +749,151 @@ function HomePage({ onBook, onGiftBook }) {
             It's the missing category — a dedicated practice for restoring range, releasing deep tension, and giving your nervous system permission to let go.
           </p>
         </div>
-        <div style={{ marginTop: 40 }}>
-          <PrimaryButton large onClick={() => onBook(PRODUCTS[0])}>Book your first session</PrimaryButton>
-        </div>
       </Section>
 
-      <BenefitsSection />
       <ReviewsSection />
     </>
+  );
+}
+
+function BenefitsPage({ onBook }) {
+  usePageMeta({
+    title: "Benefits of Assisted Stretching | Assisted Stretches Brisbane",
+    description: "Discover what 60 minutes of assisted stretching can do — improved range, faster recovery, and nervous system release. Brisbane's dedicated stretching studio.",
+  });
+  return (
+    <>
+      <BenefitsSection />
+      <Section style={{ background: "var(--white)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          {[
+            { icon: "◈", title: "Measurable range gains", body: "We test before and after every session. Most clients see improvement in hip, hamstring or shoulder range within the first hour." },
+            { icon: "◉", title: "Faster recovery between sessions", body: "Assisted stretching after training helps clear lactic build-up and reduce next-day stiffness. Pair it with your weekly long run, lift, or ride." },
+            { icon: "◎", title: "Nervous system reset", body: "Held stretches with the right pressure trigger the parasympathetic response — the same one behind deep sleep. Most clients leave calmer than they came in." },
+            { icon: "✦", title: "Better posture over time", body: "Regular sessions release the hip flexors, chest, and spinal muscles that desk life shortens. Most clients notice posture changes within weeks." },
+          ].map((item, i) => (
+            <div key={i} style={{ background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 12, padding: "28px 24px" }}>
+              <div style={{ fontSize: 18, color: "var(--deep-clay)", marginBottom: 12 }}>{item.icon}</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 400, marginBottom: 10 }}>{item.title}</div>
+              <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-secondary)" }}>{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+      <ReviewsSection />
+    </>
+  );
+}
+
+function AboutPage({ onBook }) {
+  usePageMeta({
+    title: "About Assisted Stretches | Brisbane's Dedicated Stretching Studio",
+    description: "Founded on a simple observation — most people are tighter than they need to be. Meet the practitioner behind Assisted Stretches Brisbane.",
+  });
+  return (
+    <>
+      <section style={{ background: "var(--white)", height: "calc(100vh - 48px)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 28px 0", height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }} className="hero-grid">
+          <div>
+            <SectionLabel text="About Assisted Stretches" />
+            <h1 className="fade-up" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 3.2vw, 38px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", color: "var(--forest-ink)", marginBottom: 14, opacity: 0 }}>
+              Founded on a simple observation.
+            </h1>
+            <p className="fade-up delay-1" style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 10, opacity: 0 }}>
+              Most people are tighter than they need to be, and nothing they're doing on their own is fixing it. Foam rollers don't reach deep enough. Massage feels good but doesn't change range or restore movement patterns.
+            </p>
+            <p className="fade-up delay-2" style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 10, opacity: 0 }}>
+              What works is someone trained taking your body through stretches you can't execute on yourself — using contract-relax cycles, precise positioning, and decades of combined technique. That's what we do, right here in Brisbane. Nothing else.
+            </p>
+            <p className="fade-up delay-2" style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 24, opacity: 0 }}>
+              We built Assisted Stretches for people who want results they can feel in their hips the next morning, their shoulders in their next workout, and their posture within weeks. Real, consistent progress. One practitioner, one body at a time.
+            </p>
+            <div style={{ borderTop: "1px solid var(--bone-dark)", paddingTop: 20 }}>
+              <SectionLabel text="Your practitioner" />
+              <p style={{ fontFamily: "var(--font-display)", fontSize: 17, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", marginBottom: 10 }}>
+                Flexibility is the foundation of movement, yet it's one of the most overlooked areas in the health and fitness industry.
+              </p>
+              <p style={{ fontSize: 13.5, lineHeight: 1.65, color: "var(--text-secondary)" }}>
+                I am a Certified Stretch Practitioner working hands-on with clients who want to integrate evidence-based assisted stretching techniques into their health and wellness routine.
+              </p>
+            </div>
+          </div>
+          <div className="fade-in delay-3" style={{ opacity: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
+              <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
+            </div>
+            <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
+              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function ContactPage() {
+  usePageMeta({
+    title: "Contact Assisted Stretches Brisbane",
+    description: "Get in touch with Assisted Stretches Brisbane. We'll respond within one business day.",
+  });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [status, setStatus] = useState("idle");
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      const res = await fetch("http://localhost:3001/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      if (!res.ok) throw new Error();
+      setStatus("sent");
+    } catch { setStatus("error"); }
+  };
+  const inputStyle = { width: "100%", padding: "12px 14px", border: "1px solid var(--bone-dark)", borderRadius: 6, fontFamily: "var(--font-body)", fontSize: 14.5, background: "var(--white)", color: "var(--forest-ink)", boxSizing: "border-box", outline: "none" };
+  const labelStyle = { display: "block", fontSize: 12, fontWeight: 500, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 6 };
+  return (
+    <Section style={{ paddingTop: 48 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "start" }} className="hero-grid">
+        {/* Left — info */}
+        <div>
+          <SectionLabel text="Get in touch" />
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, lineHeight: 1.06, color: "var(--forest-ink)", marginBottom: 16 }}>Send us an enquiry.</h1>
+          <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 32 }}>We'll respond within one business day.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {[{ icon: "✉", label: "Email", value: "hello@assistedstretches.com" }, { icon: "◎", label: "Location", value: "Brisbane, QLD" }, { icon: "◆", label: "Response time", value: "Within one business day" }].map((item, i) => (
+              <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>{item.icon}</span>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 2 }}>{item.label.toUpperCase()}</div>
+                  <div style={{ fontSize: 15, color: "var(--forest-ink)" }}>{item.value}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Right — form */}
+        <div>
+          {status === "sent" ? (
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
+              <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 400, color: "var(--forest-ink)", marginBottom: 12 }}>Message sent.</h2>
+              <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.6 }}>We'll be in touch at {form.email} shortly.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <div><label style={labelStyle}>NAME *</label><input style={inputStyle} value={form.name} onChange={set("name")} placeholder="Your name" required /></div>
+              <div><label style={labelStyle}>EMAIL *</label><input style={inputStyle} type="email" value={form.email} onChange={set("email")} placeholder="your@email.com" required /></div>
+              <div><label style={labelStyle}>PHONE</label><input style={inputStyle} type="tel" value={form.phone} onChange={set("phone")} placeholder="Optional" /></div>
+              <div><label style={labelStyle}>MESSAGE *</label><textarea style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} value={form.message} onChange={set("message")} placeholder="How can we help?" required /></div>
+              {status === "error" && <p style={{ fontSize: 13, color: "#c0392b", margin: 0 }}>Something went wrong — please try again or email hello@assistedstretches.com.</p>}
+              <button type="submit" disabled={status === "sending"} style={{ background: "var(--terracotta)", color: "var(--bone)", border: "none", padding: "14px 0", borderRadius: 6, cursor: status === "sending" ? "default" : "pointer", fontFamily: "var(--font-body)", fontSize: 14.5, fontWeight: 500, opacity: status === "sending" ? 0.7 : 1 }}>
+                {status === "sending" ? "Sending…" : "Send enquiry"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </Section>
   );
 }
 
@@ -792,57 +913,12 @@ function SessionPage({ setPage, onBook, onGiftBook }) {
   });
   return (
     <>
-      <Section style={{ paddingTop: 56, paddingBottom: 64 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="hero-grid">
-          <div>
-            <div className="fade-up" style={{ opacity: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 22 }}>ONE-ON-ONE · 60 MINUTES · BRISBANE STUDIO</div>
-            </div>
-            <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(38px, 5.5vw, 58px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", marginBottom: 26, opacity: 0, color: "var(--forest-ink)" }}>
-              Stretch deeper than you can on your own.
-            </h1>
-            <p className="fade-up delay-2" style={{ fontSize: 16.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 34, opacity: 0 }}>
-              A guided 60-minute assisted stretch session using PNF technique that goes where solo stretching cannot — hamstrings, hips, shoulders, lower back. You lie down. We do the work.
-            </p>
-            <div className="fade-up delay-3" style={{ fontSize: 14.5, color: "var(--text-secondary)", marginBottom: 30, opacity: 0 }}>
-              <span style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--forest-ink)", fontWeight: 400 }}>$125</span>
-            </div>
-            <div className="fade-up delay-4" style={{ display: "flex", flexDirection: "column", gap: 16, opacity: 0 }}>
-              <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                <PrimaryButton large onClick={() => onBook(PRODUCTS[0])}>Book a session — $125</PrimaryButton>
-              </div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <button onClick={() => onBook(PRODUCTS[1])} style={{ background: "none", border: "1.5px solid var(--sand)", borderRadius: 6, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 400, color: "var(--text-secondary)", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--deep-clay)"; e.currentTarget.style.color = "var(--forest-ink)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--sand)"; e.currentTarget.style.color = "var(--text-secondary)"; }}>5-pack — $115/session</button>
-                <button onClick={() => onBook(PRODUCTS[2])} style={{ background: "none", border: "1.5px solid var(--sand)", borderRadius: 6, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 400, color: "var(--text-secondary)", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--deep-clay)"; e.currentTarget.style.color = "var(--forest-ink)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--sand)"; e.currentTarget.style.color = "var(--text-secondary)"; }}>10-pack — $100/session</button>
-              </div>
-            </div>
-          </div>
-          <div className="fade-in delay-3" style={{ opacity: 0 }}>
-            <EditorialImage label="Practitioner's hands guiding a hamstring stretch. Natural light, neutral tones, close crop, editorial feel — Kinfolk meets physiotherapy." height={460} />
-          </div>
-        </div>
-      </Section>
-      <BenefitsSection />
       <MessagingPillars />
       <HowItWorksSection />
       <FAQSection />
       <PractitionerBio />
       <ReviewsSection />
       <ObjectionHandlers />
-      <PricingLadder setPage={setPage} onBook={onBook} highlight={PAGES.session} />
-      <Section style={{ background: "var(--white)" }}>
-        <SectionLabel text="While you're here" />
-        <SectionTitle>Extras</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, marginTop: 28 }}>
-          {[{ title: "Gift Cards", desc: "1, 5, or 10 sessions. The best gift our clients have ever received.", cta: "Browse gift cards", onClick: () => onGiftBook && onGiftBook() }, { title: "Recovery Kit", desc: "Mini foam roller and massage ball pair. Branded packaging, take-home ready.", cta: "Add to cart — $49" }, { title: "Partner Offers", desc: "First month at a recommended local gym, recovery cafe, or sleep brand.", cta: "View offers" }].map((item, i) => (
-            <div key={i} style={{ background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 10, padding: 32 }}>
-              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 22, marginBottom: 10, fontWeight: 400 }}>{item.title}</h4>
-              <p style={{ fontSize: 14, lineHeight: 1.65, color: "var(--text-secondary)", marginBottom: 18 }}>{item.desc}</p>
-              <span onClick={item.onClick} style={{ fontSize: 13.5, fontWeight: 500, color: "var(--terracotta)", cursor: "pointer" }}>{item.cta} →</span>
-            </div>
-          ))}
-        </div>
-      </Section>
     </>
   );
 }
@@ -863,22 +939,22 @@ function FivePackPage({ setPage, onBook }) {
   });
   return (
     <>
-      <Section style={{ paddingTop: 56, paddingBottom: 64 }}>
+      <Section style={{ paddingTop: 40, paddingBottom: 48 }}>
         <div style={{ maxWidth: 660 }}>
-          <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 22 }}>FIVE SESSIONS · 6-MONTH VALIDITY · SAVE $50</div></div>
-          <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(36px, 5vw, 54px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 26, opacity: 0 }}>Five sessions. The habit takes hold.</h1>
-          <p className="fade-up delay-2" style={{ fontSize: 16.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 34, opacity: 0 }}>Five 60-minute assisted stretch sessions, used at your pace over six months. The format most regulars start with — long enough to feel real change, short enough to commit to today.</p>
-          <div className="fade-up delay-3" style={{ marginBottom: 30, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 36, color: "var(--forest-ink)", fontWeight: 400 }}>$575</span><span style={{ fontSize: 14.5, color: "var(--text-secondary)", marginLeft: 14 }}>$115 per session · Save $50</span></div>
-          <div className="fade-up delay-4" style={{ display: "flex", gap: 16, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onBook(PRODUCTS[1])}>Buy 5-pack — $575</PrimaryButton><SecondaryButton onClick={() => setPage(PAGES.tenPack)}>Compare with 10-pack</SecondaryButton></div>
+          <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>FIVE SESSIONS · 6-MONTH VALIDITY · SAVE $50</div></div>
+          <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 50px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0 }}>Five sessions. The habit takes hold.</h1>
+          <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 22, opacity: 0 }}>Five 60-minute assisted stretch sessions, used at your pace over six months. The format most regulars start with — long enough to feel real change, short enough to commit to today.</p>
+          <div className="fade-up delay-3" style={{ marginBottom: 20, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--forest-ink)", fontWeight: 400 }}>$575</span><span style={{ fontSize: 14.5, color: "var(--text-secondary)", marginLeft: 14 }}>$115 per session · Save $50</span></div>
+          <div className="fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onBook(PRODUCTS[1])}>Buy 5-pack — $575</PrimaryButton><SecondaryButton onClick={() => setPage(PAGES.tenPack)}>Compare with 10-pack</SecondaryButton></div>
         </div>
       </Section>
       <Section style={{ background: "var(--white)" }}>
-        <div style={{ maxWidth: 560, background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 12, padding: 44 }}>
-          <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.14em", color: "var(--deep-clay)", marginBottom: 18 }}>WHY MOST CLIENTS PICK THIS PACK</div>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: 22, lineHeight: 1.45, fontWeight: 400 }}>A single session shows you what's possible. Five sessions makes the change stick.</p>
-          <p style={{ fontSize: 14.5, color: "var(--text-secondary)", marginTop: 14, lineHeight: 1.65 }}>Most regulars start here, then graduate to the 10-pack once they realise they're coming weekly anyway.</p>
+        <div style={{ maxWidth: 560, background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 12, padding: 32 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.14em", color: "var(--deep-clay)", marginBottom: 14 }}>WHY MOST CLIENTS PICK THIS PACK</div>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: 21, lineHeight: 1.45, fontWeight: 400 }}>A single session shows you what's possible. Five sessions makes the change stick.</p>
+          <p style={{ fontSize: 14.5, color: "var(--text-secondary)", marginTop: 10, lineHeight: 1.65 }}>Most regulars start here, then graduate to the 10-pack once they realise they're coming weekly anyway.</p>
         </div>
-      </Section><BenefitsSection /><HowItWorksSection /><FAQSection /><ReviewsSection /><ObjectionHandlers /><PricingLadder setPage={setPage} onBook={onBook} highlight={PAGES.fivePack} />
+      </Section><BenefitsSection /><HowItWorksSection /><FAQSection /><ReviewsSection /><ObjectionHandlers />
     </>
   );
 }
@@ -899,30 +975,30 @@ function TenPackPage({ setPage, onBook }) {
   });
   return (
     <>
-      <Section style={{ paddingTop: 56, paddingBottom: 64 }}>
+      <Section style={{ paddingTop: 40, paddingBottom: 48 }}>
         <div style={{ maxWidth: 660 }}>
-          <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 22 }}>TEN SESSIONS · 12-MONTH VALIDITY · SAVE $250</div></div>
-          <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(36px, 5vw, 54px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 26, opacity: 0 }}>Ten sessions. The best per-session price we offer.</h1>
-          <p className="fade-up delay-2" style={{ fontSize: 16.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 34, opacity: 0 }}>Ten 60-minute assisted stretch sessions, used at your pace over twelve months. For people who already know how this feels and want it as part of life.</p>
-          <div className="fade-up delay-3" style={{ marginBottom: 30, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 36, color: "var(--forest-ink)", fontWeight: 400 }}>$1,000</span><span style={{ fontSize: 14.5, color: "var(--text-secondary)", marginLeft: 14 }}>$100 per session · Save $250</span></div>
-          <div className="fade-up delay-4" style={{ display: "flex", gap: 16, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onBook(PRODUCTS[2])}>Buy 10-pack — $1,000</PrimaryButton><SecondaryButton onClick={() => setPage(PAGES.fivePack)}>Compare with 5-pack</SecondaryButton></div>
+          <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>TEN SESSIONS · 12-MONTH VALIDITY · SAVE $250</div></div>
+          <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 50px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0 }}>Ten sessions. The best per-session price we offer.</h1>
+          <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 22, opacity: 0 }}>Ten 60-minute assisted stretch sessions, used at your pace over twelve months. For people who already know how this feels and want it as part of life.</p>
+          <div className="fade-up delay-3" style={{ marginBottom: 20, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--forest-ink)", fontWeight: 400 }}>$1,000</span><span style={{ fontSize: 14.5, color: "var(--text-secondary)", marginLeft: 14 }}>$100 per session · Save $250</span></div>
+          <div className="fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onBook(PRODUCTS[2])}>Buy 10-pack — $1,000</PrimaryButton><SecondaryButton onClick={() => setPage(PAGES.fivePack)}>Compare with 5-pack</SecondaryButton></div>
         </div>
       </Section>
       <Section style={{ background: "var(--white)" }}>
         <div style={{ maxWidth: 560, background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 12, padding: 44 }}>
           <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.14em", color: "var(--deep-clay)", marginBottom: 18 }}>THE LOYALTY PACK</div>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: 22, lineHeight: 1.45, fontWeight: 400 }}>Ten sessions at $100 each. The best per-session rate we offer, plus a free guest pass.</p>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: 22, lineHeight: 1.45, fontWeight: 400 }}>Ten sessions at $100 each. The best per-session rate we offer.</p>
           <p style={{ fontSize: 14.5, color: "var(--text-secondary)", marginTop: 14, lineHeight: 1.65 }}>Twelve months to use them — plenty of room for life.</p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginTop: 36 }}>
-          {[{ icon: "◇", text: "One complimentary guest pass to share" }, { icon: "◈", text: "Priority booking — schedule 6 weeks ahead" }, { icon: "◉", text: "Credits valid 12 months from purchase" }].map((perk, i) => (
+          {[{ icon: "◈", text: "Priority booking — schedule 6 weeks ahead" }, { icon: "◉", text: "Credits valid 12 months from purchase" }].map((perk, i) => (
             <div key={i} style={{ background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 8, padding: "20px 24px", display: "flex", gap: 14, alignItems: "start" }}>
               <span style={{ color: "var(--deep-clay)", fontSize: 14 }}>{perk.icon}</span>
               <span style={{ fontSize: 14, lineHeight: 1.55 }}>{perk.text}</span>
             </div>
           ))}
         </div>
-      </Section><BenefitsSection /><HowItWorksSection /><FAQSection /><ReviewsSection /><ObjectionHandlers /><PricingLadder setPage={setPage} onBook={onBook} highlight={PAGES.tenPack} />
+      </Section><BenefitsSection /><HowItWorksSection /><FAQSection /><ReviewsSection /><ObjectionHandlers />
     </>
   );
 }
@@ -948,26 +1024,30 @@ function GiftCardsPage({ setPage, onBook, onGiftBook }) {
   ];
   return (
     <>
-      <Section style={{ paddingTop: 56, paddingBottom: 64 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="hero-grid">
+      <section style={{ background: "var(--bone)", height: "70vh" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 28px 0", height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "start" }} className="hero-grid">
           <div>
-            <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 22 }}>GIFT CARDS · DIGITAL DELIVERY · INSTANT</div></div>
-            <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 26, opacity: 0 }}>Give the feeling of a body that finally lets go.</h1>
-            <p className="fade-up delay-2" style={{ fontSize: 16.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 34, opacity: 0 }}>A gift card for one, five or ten 60-minute assisted stretch sessions. Delivered the moment you buy it, redeemable for twelve months.</p>
-            <div className="fade-up delay-3" style={{ marginBottom: 30, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 26, color: "var(--forest-ink)", fontWeight: 400 }}>From $125</span><div style={{ fontSize: 13.5, color: "var(--text-secondary)", marginTop: 6 }}>Includes a personal message</div></div>
-            <div className="fade-up delay-4" style={{ display: "flex", gap: 16, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onGiftBook()}>Choose a gift card</PrimaryButton></div>
+            <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>GIFT CARDS · DIGITAL DELIVERY · INSTANT</div></div>
+            <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0 }}>Give the feeling of a body that finally lets go.</h1>
+            <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>A gift card for one, five or ten 60-minute assisted stretch sessions. Delivered the moment you buy it, redeemable for twelve months.</p>
+            <div className="fade-up delay-3" style={{ marginBottom: 20, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--forest-ink)", fontWeight: 400 }}>From $125</span><div style={{ fontSize: 13.5, color: "var(--text-secondary)", marginTop: 6 }}>Includes a personal message</div></div>
+            <div className="fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onGiftBook()}>Choose a gift card</PrimaryButton></div>
           </div>
-          <div className="fade-in delay-3" style={{ opacity: 0 }}><GiftCardVisual sessions={[1, 5, 10][sel]} /></div>
+          <div className="fade-in delay-3" style={{ opacity: 0, height: "calc(100% - 20px)" }}>
+            <div style={{ height: "100%", display: "flex", alignItems: "center" }}>
+              <GiftCardVisual sessions={[1, 5, 10][sel]} />
+            </div>
+          </div>
         </div>
-      </Section>
+      </section>
       <Section style={{ background: "var(--white)" }}>
         <SectionLabel text="Choose a denomination" />
         <SectionTitle>Pick the perfect gift</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16, marginTop: 36 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 14, marginTop: 22 }}>
           {denoms.map((d, i) => {
             const active = sel === i;
             return (
-              <div key={i} onClick={() => setSel(i)} style={{ background: active ? "var(--forest-ink)" : "var(--bone)", color: active ? "var(--bone)" : "var(--forest-ink)", borderRadius: 12, padding: 32, cursor: "pointer", border: active ? "none" : "1px solid var(--bone-dark)", transition: "all 0.3s" }}>
+              <div key={i} onClick={() => setSel(i)} style={{ background: active ? "var(--forest-ink)" : "var(--bone)", color: active ? "var(--bone)" : "var(--forest-ink)", borderRadius: 12, padding: 24, cursor: "pointer", border: active ? "none" : "1px solid var(--bone-dark)", transition: "all 0.3s" }}>
                 <div style={{ fontSize: 12.5, fontWeight: 500, opacity: 0.6 }}>{d.sessions} {d.sessions === 1 ? "session" : "sessions"}</div>
                 <div style={{ fontFamily: "var(--font-display)", fontSize: 36, margin: "10px 0", fontWeight: 400 }}>{d.price}</div>
                 <p style={{ fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", opacity: 0.8, marginBottom: 12 }}>"{d.tagline}"</p>
@@ -981,7 +1061,7 @@ function GiftCardsPage({ setPage, onBook, onGiftBook }) {
       <Section style={{ background: "var(--white)" }}>
         <SectionLabel text="Who it's for" />
         <SectionTitle>Most gifts get used once. This one changes how someone moves.</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16, marginTop: 36 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 14, marginTop: 22 }}>
           {[
             { tag: "For the person who has everything", text: "The chronic over-shoppers, the hard-to-buy-for partner, the parent who waves off birthdays. They don't need another candle. They need an hour where someone takes care of them." },
             { tag: "For the person who won't look after themselves", text: "Athletes who skip recovery. Desk workers who never stop. Parents running on empty. A gift card removes the excuses — it's booked, it's paid for, all they have to do is turn up." },
@@ -997,11 +1077,11 @@ function GiftCardsPage({ setPage, onBook, onGiftBook }) {
       <Section>
         <SectionLabel text="How gifting works" />
         <SectionTitle>Four steps. Two minutes.</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, marginTop: 36 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginTop: 22 }}>
           {[{ step: "1", title: "Choose", desc: "Pick a denomination — one, five, or ten sessions. Add a recipient's name and email." }, { step: "2", title: "Personalise", desc: "Add a personal message. Enough to be meaningful, short enough to actually write." }, { step: "3", title: "Deliver", desc: "The digital gift card is emailed instantly to the recipient with their unique code." }, { step: "4", title: "Redeem", desc: "They book online with the code. Valid for twelve months from purchase. We send reminders before it expires." }].map((s, i) => (
-            <div key={i} style={{ background: "var(--white)", border: "1px solid var(--bone-dark)", borderRadius: 10, padding: 32 }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", border: "1.5px solid var(--deep-clay)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontSize: 19, color: "var(--deep-clay)", marginBottom: 18, fontWeight: 400 }}>{s.step}</div>
-              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 22, marginBottom: 10, fontWeight: 400 }}>{s.title}</h4>
+            <div key={i} style={{ background: "var(--white)", border: "1px solid var(--bone-dark)", borderRadius: 10, padding: 24 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", border: "1.5px solid var(--deep-clay)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontSize: 17, color: "var(--deep-clay)", marginBottom: 12, fontWeight: 400 }}>{s.step}</div>
+              <h4 style={{ fontFamily: "var(--font-display)", fontSize: 20, marginBottom: 8, fontWeight: 400 }}>{s.title}</h4>
               <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--text-secondary)" }}>{s.desc}</p>
             </div>
           ))}
@@ -1009,6 +1089,19 @@ function GiftCardsPage({ setPage, onBook, onGiftBook }) {
       </Section>
       <ReviewsSection reviews={GIFT_REVIEWS} title="Gifts that landed." sub="What givers say after they bought a card." />
     </>
+  );
+}
+
+// ─── BOOKING PAGE ────────────────────────────────────────────
+function BookingPage({ setPage }) {
+  usePageMeta({
+    title: "Book a Session | Assisted Stretches Brisbane",
+    description: "Book a 60-minute assisted stretch session in Brisbane. Choose single session, 5-pack or 10-pack. Select your date, time and pay securely online.",
+  });
+  return (
+    <Section style={{ paddingTop: 24, paddingBottom: 32 }}>
+      <BookingModal mode="page" isOpen={true} onClose={() => setPage(PAGES.home)} />
+    </Section>
   );
 }
 
@@ -1254,20 +1347,20 @@ function FaqPage({ onBook }) {
   });
   const [openIdx, setOpenIdx] = useState(null);
   return (
-    <Section style={{ paddingTop: 56 }}>
+    <Section style={{ paddingTop: 40 }}>
       <div style={{ maxWidth: 720 }}>
         <div className="fade-up" style={{ opacity: 0 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 22 }}>FREQUENTLY ASKED QUESTIONS</div>
+          <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>FREQUENTLY ASKED QUESTIONS</div>
         </div>
-        <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 12, opacity: 0 }}>
+        <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
           Everything you want to know.
         </h1>
-        <p className="fade-up delay-2" style={{ fontSize: 16, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 48, opacity: 0, maxWidth: 560 }}>
+        <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0, maxWidth: 560 }}>
           Answers to the most common questions about assisted stretching — what it is, who it's for, and what to expect.
         </p>
         {DETAILED_FAQS.map((faq, i) => (
           <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
-            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", padding: "24px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 16, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left", gap: 20 }}>
+            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left", gap: 20 }}>
               <span>{faq.q}</span>
               <span style={{ fontSize: 24, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, fontWeight: 300, lineHeight: 1, marginTop: 2 }}>+</span>
             </button>
@@ -1292,8 +1385,13 @@ export default function App() {
   const [bookingConfig, setBookingConfig] = useState(null);
   const [contactOpen, setContactOpen] = useState(false);
   const scrollRef = useRef(null);
-  const changePage = (p) => { setPage(p); };
-  useEffect(() => { setTimeout(() => scrollRef.current?.scrollTo({ top: 0, behavior: "instant" }), 0); }, [page]);
+  const changePage = (p) => {
+    setPage(p);
+    setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
+  };
+  useEffect(() => {
+    setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
+  }, [page]);
   const openBooking = (product, initialStep) => setBookingConfig({ product: product || PRODUCTS[0], initialStep });
   const openGiftCardBooking = () => setBookingConfig({ product: null, initialStep: 3 });
   const closeBooking = () => setBookingConfig(null);
@@ -1303,12 +1401,16 @@ export default function App() {
       <div ref={scrollRef} className="app-scroll-container" style={{ height: "100vh", overflow: "auto", background: "var(--bone)" }}>
         <Nav currentPage={page} setPage={changePage} onBook={openBooking} onContact={() => setContactOpen(true)} scrollRef={scrollRef} />
         {page === PAGES.home && <HomePage onBook={openBooking} onGiftBook={openGiftCardBooking} />}
+        {page === PAGES.benefits && <BenefitsPage onBook={openBooking} />}
+        {page === PAGES.about && <AboutPage onBook={openBooking} />}
+        {page === PAGES.contact && <ContactPage />}
         {page === PAGES.session && <SessionPage setPage={changePage} onBook={openBooking} onGiftBook={openGiftCardBooking} />}
         {page === PAGES.fivePack && <FivePackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.tenPack && <TenPackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.giftCards && <GiftCardsPage setPage={changePage} onBook={openBooking} onGiftBook={openGiftCardBooking} />}
         {page === PAGES.faq && <FaqPage onBook={openBooking} />}
-        <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />
+        {page === PAGES.booking && <BookingPage setPage={changePage} />}
+        {page !== PAGES.booking && page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
         <StickyCTA page={page} onBook={openBooking} />
       </div>
       <BookingModal

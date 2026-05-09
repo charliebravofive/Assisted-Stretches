@@ -76,21 +76,24 @@ const btn = (variant, extra = {}) => ({
 // ─── STEP BARS ───────────────────────────────────────────────
 const STEP_LABELS = ["Service","Date","Time","Details","Payment"];
 
-function StepBar({ step }) {
+function StepBar({ step, compact = false }) {
+  const circleSize = compact ? 22 : 28;
+  const fontSize   = compact ? 11 : 12;
+  const labelSize  = compact ? 9  : 10;
   return (
-    <div style={{ display: "flex", alignItems: "center", padding: "0 28px" }}>
+    <div style={{ display: "flex", alignItems: "center", padding: compact ? "0" : "0 28px" }}>
       {STEP_LABELS.map((label, i) => {
         const done = i < step, cur = i === step;
         return (
           <div key={i} style={{ display: "flex", alignItems: "center", flex: i < STEP_LABELS.length - 1 ? 1 : "none" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, background: done ? C.forest : cur ? C.terracotta : C.boneDark, color: done || cur ? C.bone : C.textSec, transition: "all 0.3s" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <div style={{ width: circleSize, height: circleSize, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize, fontWeight: 600, background: done ? C.forest : cur ? C.terracotta : C.boneDark, color: done || cur ? C.bone : C.textSec, transition: "all 0.3s" }}>
                 {done ? "✓" : i + 1}
               </div>
-              <span style={{ fontSize: 10, color: cur ? C.terracotta : done ? C.forest : C.textSec, fontWeight: cur ? 600 : 400, whiteSpace: "nowrap" }}>{label}</span>
+              <span style={{ fontSize: labelSize, color: cur ? C.terracotta : done ? C.forest : C.textSec, fontWeight: cur ? 600 : 400, whiteSpace: "nowrap" }}>{label}</span>
             </div>
             {i < STEP_LABELS.length - 1 && (
-              <div style={{ flex: 1, height: 1.5, background: done ? C.forest : C.boneDark, margin: "0 4px", marginBottom: 18, transition: "background 0.3s" }} />
+              <div style={{ flex: 1, height: 1.5, background: done ? C.forest : C.boneDark, margin: "0 4px", marginBottom: compact ? 14 : 18, transition: "background 0.3s" }} />
             )}
           </div>
         );
@@ -120,6 +123,58 @@ function GiftStepBar({ giftStep }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ─── STEP 0: PAGE PRICING CARDS ──────────────────────────────
+const PAGE_PLANS = [
+  { save: "—",        validity: "Use anytime", best: "Trying it out" },
+  { save: "Save $50", validity: "6 months",    best: "Building a habit", recommended: true },
+  { save: "Save $250",validity: "12 months",   best: "Athletes & regulars" },
+];
+
+function PagePricingStep({ selected, onSelect, products }) {
+  const displayProducts = products || PRODUCTS;
+  return (
+    <div>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.16em", color: C.clay, marginBottom: 6 }}>CHOOSE YOUR PATH</div>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 400, color: C.forest, marginBottom: 4, lineHeight: 1.1 }}>How many sessions?</h2>
+        <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.5 }}>Select a plan, then pick your date and time.</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, alignItems: "stretch" }}>
+        {displayProducts.map((p, i) => {
+          const plan = PAGE_PLANS[i] || {};
+          const isSelected = selected?.id === p.id;
+          return (
+            <div key={p.id} onClick={() => onSelect(p)} style={{
+              background: isSelected ? C.forest : C.white, color: isSelected ? C.bone : C.forest,
+              borderRadius: 14, padding: "32px 28px", position: "relative",
+              border: isSelected ? "none" : `1.5px solid ${C.boneDark}`,
+              cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s",
+              boxShadow: isSelected ? "0 8px 32px rgba(45,61,53,0.2)" : "none",
+              display: "flex", flexDirection: "column",
+            }}
+              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.transform = "translateY(-3px)"; }}
+              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.transform = "none"; }}
+            >
+              {plan.recommended && !isSelected && (
+                <div style={{ position: "absolute", top: -11, left: 18, background: C.terracotta, color: C.bone, fontSize: 10, fontWeight: 700, padding: "3px 12px", borderRadius: 20, letterSpacing: "0.08em" }}>POPULAR</div>
+              )}
+              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.65, marginBottom: 6 }}>{p.label}</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: 38, fontWeight: 400, marginBottom: 4 }}>${p.price.toLocaleString()}</div>
+              <div style={{ fontSize: 13, opacity: 0.6, marginBottom: 20 }}>{p.per ? `$${p.per}/session` : "$125/session"}</div>
+              <div style={{ fontSize: 13, lineHeight: 2.1, borderTop: `1px solid ${isSelected ? "rgba(242,237,228,0.15)" : C.boneDark}`, paddingTop: 14, flex: 1 }}>
+                <div><span style={{ opacity: 0.55 }}>Save:</span> {plan.save || "—"}</div>
+                <div><span style={{ opacity: 0.55 }}>Valid:</span> {plan.validity || "Use anytime"}</div>
+                <div><span style={{ opacity: 0.55 }}>Best for:</span> {plan.best || "—"}</div>
+              </div>
+              {isSelected && <div style={{ marginTop: 16, textAlign: "center", fontSize: 12.5, fontWeight: 600, color: C.terracotta, background: "rgba(200,133,106,0.18)", borderRadius: 6, padding: "6px 0" }}>✓ Selected</div>}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -220,7 +275,7 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
       <h2 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 400, color: C.forest, marginBottom: 8 }}>Pick a date</h2>
       {maxSessions > 1 && <div style={{ fontSize: 12, fontWeight: 600, color: C.terracotta, letterSpacing: "0.08em", marginBottom: 6 }}>Session {sessionNum} of {maxSessions}</div>}
       <p style={{ fontSize: 14, color: C.textSec, marginBottom: 24, lineHeight: 1.6 }}>Available Monday (4–6 pm), Friday (4–6 pm) and Saturday (8 am–1 pm). Select a day to see times.</p>
-      <div style={{ background: C.white, borderRadius: 12, padding: "20px", border: `1px solid ${C.boneDark}` }}>
+      <div style={{ background: C.white, borderRadius: 12, padding: "20px", border: `1px solid ${C.boneDark}`, position: "relative", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <button onClick={() => canPrev && setView(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: canPrev ? "pointer" : "default", fontSize: 20, color: canPrev ? C.forest : C.boneDark, padding: "4px 8px", lineHeight: 1 }}>‹</button>
           <span style={{ fontFamily: "Georgia, serif", fontSize: 16, fontWeight: 600, color: C.forest }}>{MONTH_NAMES[month]} {year}</span>
@@ -261,6 +316,27 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
               </button>
             );
           })}
+        </div>
+        {/* Coming soon overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "rgba(255,255,255,0.55)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          pointerEvents: "all", cursor: "default",
+        }}>
+          <div style={{
+            transform: "rotate(-35deg)",
+            fontSize: 28, fontWeight: 800,
+            color: "#CC0000",
+            letterSpacing: "0.04em",
+            textAlign: "center",
+            lineHeight: 1.3,
+            userSelect: "none",
+            textShadow: "0 1px 4px rgba(0,0,0,0.15)",
+            whiteSpace: "nowrap",
+          }}>
+            OPENING JULY 2027
+          </div>
         </div>
       </div>
       {hoveredHoliday && (
@@ -506,10 +582,25 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     if (!stripe || !elements) return;
     setLoading(true); setError(null);
     try {
-      await new Promise(r => setTimeout(r, 1400));
+      // 1. Create PaymentIntent on server
+      const intentRes = await fetch("/api/payments/intent", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: booking.product?.id }),
+      });
+      const { clientSecret, paymentIntentId, error: intentErr } = await intentRes.json();
+      if (intentErr) throw new Error(intentErr);
+
+      // 2. Confirm card payment with Stripe
+      const { error: stripeErr, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: elements.getElement(CardElement) },
+      });
+      if (stripeErr) throw new Error(stripeErr.message);
+      if (paymentIntent.status !== "succeeded") throw new Error("Payment not completed.");
+
+      // 3. Record booking / gift card on server
       let giftCode = null;
       if (isGiftFlow) {
-        const res  = await fetch("/api/gift-cards/purchase", {
+        const res = await fetch("/api/gift-cards/purchase", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             product_id: booking.product?.id,
@@ -520,6 +611,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
             recipient_name:  booking.contact.recipientName  || null,
             recipient_email: booking.contact.recipientEmail || null,
             gift_message:    booking.contact.notes          || null,
+            stripe_payment_id: paymentIntent.id,
           }),
         });
         const data = await res.json();
@@ -527,7 +619,14 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
       } else {
         await fetch("/api/bookings", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ first_name: booking.contact.firstName, last_name: booking.contact.lastName, email: booking.contact.email, phone: booking.contact.phone, product_id: booking.product?.id, session_date: booking.date?.toLocaleDateString("en-AU"), session_time: booking.time, notes: booking.contact.notes }),
+          body: JSON.stringify({
+            first_name: booking.contact.firstName, last_name: booking.contact.lastName,
+            email: booking.contact.email, phone: booking.contact.phone,
+            product_id: booking.product?.id,
+            session_date: booking.date?.toLocaleDateString("en-AU"),
+            session_time: booking.time, notes: booking.contact.notes,
+            stripe_payment_id: paymentIntent.id,
+          }),
         });
       }
       onSuccess("stripe", giftCode);
@@ -749,7 +848,7 @@ function Confirmation({ booking, onClose, isGiftFlow }) {
 }
 
 // ─── MAIN MODAL ───────────────────────────────────────────────
-export default function BookingModal({ isOpen, onClose, initialProduct, initialStep }) {
+export default function BookingModal({ isOpen, onClose, initialProduct, initialStep, mode = 'modal' }) {
   // Live config state from API
   const [liveProducts,   setLiveProducts]   = useState(null);
   const [liveAvailDays,  setLiveAvailDays]  = useState(null);
@@ -810,7 +909,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const isGiftCardFlow = initialStep === 3;
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen || mode === 'page') {
       setStep(initialProduct ? 1 : 0);
       setProduct(initialProduct || null);
       setDate(null); setTime(null); setContact({}); setDone(false);
@@ -836,7 +935,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
       .catch(() => setTakenSlots([]));
   }, [date]);
 
-  if (!isOpen) return null;
+  if (mode !== 'page' && !isOpen) return null;
 
   const giftMaxDate      = getGiftMaxDate(giftProduct?.id);
   const maxGiftSessions  = giftProduct?.id === "5-pack" ? 5 : giftProduct?.id === "10-pack" ? 10 : 1;
@@ -936,6 +1035,45 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
       ? (giftStep === 0 ? "Continue to payment →" : giftStep === 2 ? "Choose a date →" : giftStep === 3 ? "Choose a time →" : "Confirm booking →")
       : (step === 3 ? "Continue to payment →" : "Continue →");
 
+  // ── Page mode render ──────────────────────────────────────
+  if (mode === 'page') {
+    return (
+      <div style={{ maxWidth: 780, margin: '0 auto', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+        {!isDone && (
+          <div style={{ marginBottom: 20 }}>
+            <StepBar step={step} compact />
+          </div>
+        )}
+        <div>
+          {isDone ? (
+            <Confirmation booking={regBooking} onClose={onClose} isGiftFlow={false} />
+          ) : (
+            <>
+              {step === 0 && <PagePricingStep selected={product} onSelect={setProduct} products={liveProducts} />}
+              {step === 1 && <DateStep value={date} onChange={setDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
+              {step === 2 && <TimeStep date={date} value={time} onChange={setTime} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
+              {step === 3 && <ContactStep value={contact} onChange={setContact} isGiftCard={false} />}
+              {step === 4 && paymentNode}
+
+              {showNavBtns && (
+                <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+                  {step > 0 && <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>}
+                  <button onClick={() => canNext && handleNext()} style={{ ...btn("primary"), flex: 2, cursor: canNext ? "pointer" : "not-allowed" }}>
+                    {step === 3 ? "Continue to payment →" : "Continue →"}
+                  </button>
+                </div>
+              )}
+              {step === 4 && (
+                <button onClick={handleBack} style={{ ...btn("ghost"), width: "100%", marginTop: 10 }}>← Back</button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Modal mode render ─────────────────────────────────────
   return (
     <div style={overlayStyle} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={sheetStyle}>
