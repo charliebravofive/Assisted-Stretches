@@ -3,17 +3,18 @@
 const fs   = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, 'data');
+// Allow an external persistent directory (e.g. Railway Volume at /data)
+// so bookings survive redeploys. Falls back to the local data/ folder.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE  = path.join(DATA_DIR, 'db.json');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-let data = { gift_cards: [], bookings: [], clients: [], enquiries: [] };
+let data = { gift_cards: [], bookings: [], clients: [], enquiries: [], waivers: [] };
 if (fs.existsSync(DB_FILE)) {
   try {
     const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-    // Ensure enquiries table exists on older db files
-    data = { enquiries: [], ...parsed };
+    data = { enquiries: [], waivers: [], ...parsed };
   }
   catch { /* start fresh */ }
 }
@@ -143,6 +144,26 @@ const store = {
       Object.assign(data.enquiries[idx], fields);
       save();
       return data.enquiries[idx];
+    },
+  },
+
+  waivers: {
+    create(fields) {
+      const row = { id: nextId('waivers'), submitted_at: new Date().toISOString(), ...fields };
+      data.waivers.push(row);
+      save();
+      return row;
+    },
+    list() {
+      return [...data.waivers].sort((a, b) =>
+        (b.submitted_at || '').localeCompare(a.submitted_at || '')
+      );
+    },
+    findById(id) {
+      return data.waivers.find(w => w.id === Number(id)) || null;
+    },
+    findByEmail(email) {
+      return data.waivers.filter(w => w.email === email);
     },
   },
 };

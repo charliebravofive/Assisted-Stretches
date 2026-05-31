@@ -6,6 +6,9 @@ const req = (path, opts = {}) =>
     ...opts,
   }).then(r => r.json());
 
+// Generic authenticated API helper used by WaiversPage and others
+export const api = (path, opts = {}) => req(path, opts);
+
 export const login = (password) => req('/api/admin/login', { method: 'POST', body: JSON.stringify({ password }) });
 export const logout = () => req('/api/admin/logout', { method: 'POST' });
 export const checkAuth = () => req('/api/admin/me');

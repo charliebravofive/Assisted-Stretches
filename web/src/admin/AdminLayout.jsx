@@ -6,6 +6,7 @@ import GiftCardsPage from './GiftCardsPage.jsx';
 import ClientsPage from './ClientsPage.jsx';
 import EnquiriesPage from './EnquiriesPage.jsx';
 import ConfigPage from './ConfigPage.jsx';
+import WaiversPage from './WaiversPage.jsx';
 
 function BrandLogoSmall() {
   return (
@@ -29,6 +30,7 @@ const PAGE_TITLES = {
   clients: 'Clients',
   enquiries: 'Enquiries',
   config: 'Configuration',
+  waivers: 'Waivers',
 };
 
 export default function AdminLayout({ currentPage, setPage, onLogout }) {
@@ -54,6 +56,7 @@ export default function AdminLayout({ currentPage, setPage, onLogout }) {
     { id: 'gift-cards', label: 'Gift Cards', icon: '🎁' },
     { id: 'clients', label: 'Clients', icon: '👥' },
     { id: 'enquiries', label: 'Enquiries', icon: '✉️', badge: newEnquiries },
+    { id: 'waivers', label: 'Waivers', icon: '📋' },
     { id: 'config', label: 'Config', icon: '⚙️' },
   ];
 
@@ -69,6 +72,7 @@ export default function AdminLayout({ currentPage, setPage, onLogout }) {
       case 'gift-cards': return <GiftCardsPage />;
       case 'clients': return <ClientsPage />;
       case 'enquiries': return <EnquiriesPage />;
+      case 'waivers': return <WaiversPage />;
       case 'config': return <ConfigPage />;
       default: return <DashboardPage />;
     }

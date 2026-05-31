@@ -130,9 +130,9 @@ router.post('/redeem', async (req, res) => {
     });
 
     await sendBookingConfirmationEmail({
-      email: booking.email, firstName: booking.first_name,
-      sessionDate: booking.session_date, sessionTime: booking.session_time,
-      productLabel: 'Assisted Stretch Session',
+      email: booking.email, firstName: booking.first_name, lastName: booking.last_name,
+      phone: booking.phone, sessionDate: booking.session_date, sessionTime: booking.session_time,
+      productLabel: '60 minute studio stretch session', notes: booking.notes || null,
     });
 
     res.json({ success: true, booking_id: bookingRecord.id, sessions_remaining: remaining });

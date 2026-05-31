@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements, CardElement, PaymentRequestButtonElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { PRODUCTS } from "./products.js";
 
 // ─── CONFIG ──────────────────────────────────────────────────
 const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
@@ -9,22 +10,31 @@ const stripePromise = STRIPE_KEY && STRIPE_KEY !== "pk_test_placeholder"
   : null;
 const DEMO_MODE = !stripePromise;
 
-export const PRODUCTS = [
-  { id: "session", label: "Single Session", price: 125, per: null,  desc: "1 × 60-min assisted stretch session", badge: null },
-  { id: "5-pack",  label: "5-Pack",         price: 575, per: 115,   desc: "5 × 60-min sessions · Valid 6 months", badge: "Popular" },
-  { id: "10-pack", label: "10-Pack",         price: 1000, per: 100,  desc: "10 × 60-min sessions · Valid 12 months", badge: null },
-];
-
 const MONTH_NAMES = ["January","February","March","April","May","June",
   "July","August","September","October","November","December"];
 const DAY_LABELS  = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
-// Real availability: Monday=1, Friday=5, Saturday=6
-const AVAILABLE_DAYS = new Set([1, 5, 6]);
+// Real availability: Sunday=0, Friday=5, Saturday=6
+const AVAILABLE_DAYS = new Set([0, 5, 6]);
+
+// ── Business launch date ──────────────────────────────────────
+const BUSINESS_OPEN_DATE = new Date(2026, 5, 20); // 20 June 2026 (Saturday)
+BUSINESS_OPEN_DATE.setHours(0, 0, 0, 0);
+
+function getBookingDateBounds() {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  // Before opening: earliest bookable day is the launch date
+  // After opening:  earliest bookable day is today (rolling)
+  const minDate = now >= BUSINESS_OPEN_DATE ? now : BUSINESS_OPEN_DATE;
+  const maxDate = new Date(minDate);
+  maxDate.setMonth(maxDate.getMonth() + 3);
+  return { minDate, maxDate };
+}
 const SLOTS_BY_DAY = {
-  1: ["4:00 PM", "5:00 PM"],
   5: ["4:00 PM", "5:00 PM"],
-  6: ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM"],
+  6: ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM"],
+  0: ["9:00 AM", "10:00 AM", "11:00 AM"],
 };
 
 function getSlotsForDate(date) {
@@ -55,7 +65,7 @@ const overlayStyle = {
 
 const sheetStyle = {
   background: C.bone, borderRadius: 16, width: "100%", maxWidth: 520,
-  maxHeight: "92vh", overflowY: "auto",
+  maxHeight: "96vh", overflowY: "auto",
   boxShadow: "0 24px 80px rgba(0,0,0,0.32)",
   fontFamily: "'DM Sans', -apple-system, sans-serif",
 };
@@ -102,7 +112,7 @@ function StepBar({ step, compact = false }) {
   );
 }
 
-const GIFT_STEP_LABELS = ["Details", "Payment", "Service", "Date", "Time"];
+const GIFT_STEP_LABELS = ["Details", "Payment", "Confirm"];
 
 function GiftStepBar({ giftStep }) {
   return (
@@ -209,16 +219,16 @@ function ServiceStep({ selected, onSelect, initialProduct, products }) {
 
 // ─── GIFT CARD DENOMINATIONS ─────────────────────────────────
 const GIFT_DENOMS = [
-  { sessions: 1,  product: PRODUCTS[0], price: "$125",   saving: null,       tagline: "One hour where the world stops." },
-  { sessions: 5,  product: PRODUCTS[1], price: "$575",   saving: "Save $50", tagline: "A real reset." },
-  { sessions: 10, product: PRODUCTS[2], price: "$1,000", saving: "Save $250",tagline: "For the person that is committed to taking assisted stretching seriously." },
+  { sessions: 1, product: PRODUCTS[0], price: "$125", saving: null, tagline: "One hour where the world stops." },
 ];
 
 // ─── DATE STEP ───────────────────────────────────────────────
-function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, availableDays, holidays = [] }) {
+function DateStep({ value, onChange, minDate, maxDate, sessionNum, maxSessions, availableDays, holidays = [] }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const [view, setView] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  // Effective earliest selectable date (business open date or today, whichever is later)
+  const effectiveMin = minDate || today;
+  const [view, setView] = useState(new Date(effectiveMin.getFullYear(), effectiveMin.getMonth(), 1));
   const [hoveredHoliday, setHoveredHoliday] = useState(null);
 
   const year = view.getFullYear(), month = view.getMonth();
@@ -230,10 +240,10 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   const liveAvailDays = availableDays || AVAILABLE_DAYS;
-  const dayDate       = d => new Date(year, month, d);
-  const isPast        = d => dayDate(d) < today;
-  const isUnavailable = d => !liveAvailDays.has(dayDate(d).getDay());
-  const isAfterMax    = d => maxDate && dayDate(d) > maxDate;
+  const dayDate        = d => new Date(year, month, d);
+  const isBeforeMin    = d => dayDate(d) < effectiveMin;
+  const isUnavailable  = d => !liveAvailDays.has(dayDate(d).getDay());
+  const isAfterMax     = d => maxDate && dayDate(d) > maxDate;
 
   // Holiday check — returns holiday object or null
   const getHoliday = d => {
@@ -247,16 +257,21 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
     }) || null;
   };
 
-  const isDisabled    = d => isPast(d) || isUnavailable(d) || isAfterMax(d) || !!getHoliday(d);
+  const isDisabled = d => isBeforeMin(d) || isUnavailable(d) || isAfterMax(d) || !!getHoliday(d);
   const isSelected = d => value && value.getDate() === d && value.getMonth() === month && value.getFullYear() === year;
   const isToday    = d => dayDate(d).getTime() === today.getTime();
 
-  const canPrev = new Date(year, month, 1) > new Date(today.getFullYear(), today.getMonth(), 1);
-  const maxView = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), 1) : null;
-  const canNext = !maxView || new Date(year, month + 1, 1) <= maxView;
+  const minView = new Date(effectiveMin.getFullYear(), effectiveMin.getMonth(), 1);
+  const canPrev  = new Date(year, month, 1) > minView;
+  const maxView  = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), 1) : null;
+  const canNext  = !maxView || new Date(year, month + 1, 1) <= maxView;
 
+  // Note shown under calendar — shows both opening date (if pre-launch) and booking window
+  const isPreLaunch = today < BUSINESS_OPEN_DATE;
   const rangeNote = maxDate
-    ? `Bookings must be within ${maxDate.toLocaleDateString("en-AU", { month: "long", year: "numeric" })}`
+    ? (isPreLaunch
+        ? `Bookings open from ${BUSINESS_OPEN_DATE.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })} · up to 3 months in advance`
+        : `Bookings available up to ${maxDate.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}`)
     : null;
 
   // Holidays visible in the current month view
@@ -272,19 +287,24 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
 
   return (
     <div>
-      <h2 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 400, color: C.forest, marginBottom: 8 }}>Pick a date</h2>
-      {maxSessions > 1 && <div style={{ fontSize: 12, fontWeight: 600, color: C.terracotta, letterSpacing: "0.08em", marginBottom: 6 }}>Session {sessionNum} of {maxSessions}</div>}
-      <p style={{ fontSize: 14, color: C.textSec, marginBottom: 24, lineHeight: 1.6 }}>Available Monday (4–6 pm), Friday (4–6 pm) and Saturday (8 am–1 pm). Select a day to see times.</p>
-      <div style={{ background: C.white, borderRadius: 12, padding: "20px", border: `1px solid ${C.boneDark}`, position: "relative", overflow: "hidden" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      <h2 style={{ fontFamily: "Georgia, serif", fontSize: 20, fontWeight: 400, color: C.forest, marginBottom: 4 }}>Pick a date</h2>
+      {maxSessions > 1 && <div style={{ fontSize: 12, fontWeight: 600, color: C.terracotta, letterSpacing: "0.08em", marginBottom: 4 }}>Session {sessionNum} of {maxSessions}</div>}
+      <p style={{ fontSize: 13, color: C.textSec, marginBottom: isPreLaunch ? 6 : 12, lineHeight: 1.5 }}>Available Friday (4–6 pm), Saturday (8 am–4 pm) and Sunday (9 am–12 pm). Select a day to see times.</p>
+      {isPreLaunch && (
+        <div style={{ background: "#FFF8E7", border: "1px solid #F0C040", borderRadius: 8, padding: "8px 12px", fontSize: 12.5, color: "#7A5500", marginBottom: 12, lineHeight: 1.5 }}>
+          📅 <strong>Opening {BUSINESS_OPEN_DATE.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</strong> — you can book ahead for sessions from that date.
+        </div>
+      )}
+      <div style={{ background: C.white, borderRadius: 12, padding: "14px 16px", border: `1px solid ${C.boneDark}`, position: "relative", overflow: "hidden" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <button onClick={() => canPrev && setView(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: canPrev ? "pointer" : "default", fontSize: 20, color: canPrev ? C.forest : C.boneDark, padding: "4px 8px", lineHeight: 1 }}>‹</button>
           <span style={{ fontFamily: "Georgia, serif", fontSize: 16, fontWeight: 600, color: C.forest }}>{MONTH_NAMES[month]} {year}</span>
           <button onClick={() => canNext && setView(new Date(year, month + 1, 1))} style={{ background: "none", border: "none", cursor: canNext ? "pointer" : "default", fontSize: 20, color: canNext ? C.forest : C.boneDark, padding: "4px 8px", lineHeight: 1 }}>›</button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 8 }}>
-          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: C.clay, letterSpacing: "0.05em", paddingBottom: 6 }}>{d}</div>)}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
+          {DAY_LABELS.map(d => <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: C.clay, letterSpacing: "0.05em", paddingBottom: 4 }}>{d}</div>)}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
           {cells.map((d, i) => {
             if (!d) return <div key={i} />;
             const holiday = getHoliday(d);
@@ -310,33 +330,12 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
                 }}
               >
                 {d}
-                {holiday && !isPast(d) && (
+                {holiday && !isBeforeMin(d) && (
                   <span style={{ position: "absolute", top: 0, right: 0, width: 5, height: 5, borderRadius: "50%", background: C.terracotta }} />
                 )}
               </button>
             );
           })}
-        </div>
-        {/* Coming soon overlay */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "rgba(255,255,255,0.55)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          pointerEvents: "all", cursor: "default",
-        }}>
-          <div style={{
-            transform: "rotate(-35deg)",
-            fontSize: 28, fontWeight: 800,
-            color: "#CC0000",
-            letterSpacing: "0.04em",
-            textAlign: "center",
-            lineHeight: 1.3,
-            userSelect: "none",
-            textShadow: "0 1px 4px rgba(0,0,0,0.15)",
-            whiteSpace: "nowrap",
-          }}>
-            OPENING JULY 2027
-          </div>
         </div>
       </div>
       {hoveredHoliday && (
@@ -351,20 +350,24 @@ function DateStep({ value, onChange, maxDate, sessionNum, maxSessions, available
           ))}
         </div>
       )}
-      {rangeNote && <p style={{ fontSize: 12, color: C.clay, marginTop: 10, textAlign: "center" }}>📅 {rangeNote}</p>}
+      {rangeNote && <p style={{ fontSize: 11.5, color: C.clay, marginTop: 6, textAlign: "center", lineHeight: 1.5 }}>{rangeNote}</p>}
     </div>
   );
 }
 
 // ─── TIME STEP ───────────────────────────────────────────────
 function TimeStep({ date, value, onChange, sessionNum, maxSessions, takenSlots, slotsByDay }) {
-  const slots = slotsByDay ? (slotsByDay[date.getDay()] || []) : getSlotsForDate(date);
+  const dayNum = date.getDay();
+  const slots = slotsByDay
+    ? (slotsByDay[dayNum] || slotsByDay[String(dayNum)] || [])
+    : getSlotsForDate(date);
   const counter = maxSessions > 1 ? `Session ${sessionNum} of ${maxSessions}` : null;
-  const taken = takenSlots || [];
+  const taken = Array.isArray(takenSlots) ? takenSlots : [];
   return (
     <div>
       <h2 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 400, color: C.forest, marginBottom: 4 }}>Pick a time</h2>
-      <p style={{ fontSize: 14, color: C.textSec, marginBottom: counter ? 6 : 24, lineHeight: 1.6 }}>{date.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })}</p>
+      <p style={{ fontSize: 14, color: C.textSec, marginBottom: 6, lineHeight: 1.6 }}>{date.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })}</p>
+      <p style={{ fontSize: 12.5, color: C.clay, marginBottom: counter ? 6 : 16, lineHeight: 1.5 }}>Tap a time to continue →</p>
       {counter && <div style={{ fontSize: 12, fontWeight: 600, color: C.terracotta, letterSpacing: "0.08em", marginBottom: 20 }}>{counter}</div>}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {slots.map(slot => {
@@ -395,6 +398,183 @@ function TimeStep({ date, value, onChange, sessionNum, maxSessions, takenSlots, 
   );
 }
 
+// ─── CUSTOMER TYPE STEP ──────────────────────────────────────
+function IconNewClient({ color }) {
+  return (
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Person head */}
+      <circle cx="18" cy="13" r="6" stroke={color} strokeWidth="2" fill="none" />
+      {/* Person body */}
+      <path d="M6 36c0-7 5-11 12-11s12 4 12 11" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
+      {/* Plus sign */}
+      <line x1="34" y1="24" x2="34" y2="36" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="28" y1="30" x2="40" y2="30" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconReturningClient({ color }) {
+  return (
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Person head */}
+      <circle cx="18" cy="13" r="6" stroke={color} strokeWidth="2" fill="none" />
+      {/* Person body */}
+      <path d="M6 36c0-7 5-11 12-11s12 4 12 11" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" />
+      {/* Checkmark badge */}
+      <circle cx="34" cy="30" r="7" fill={color} />
+      <path d="M30.5 30l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
+
+function CustomerTypeStep({ value, onChange }) {
+  const optStyle = (selected) => ({
+    flex: 1, padding: "28px 20px", borderRadius: 12, cursor: "pointer", textAlign: "center",
+    border: `2px solid ${selected ? C.forest : C.boneDark}`,
+    background: selected ? C.forest : C.white,
+    color: selected ? C.bone : C.forest,
+    transition: "all 0.2s",
+  });
+  return (
+    <div>
+      <h2 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 400, color: C.forest, marginBottom: 8 }}>Welcome</h2>
+      <p style={{ fontSize: 14, color: C.textSec, marginBottom: 28, lineHeight: 1.6 }}>Is this your first visit to Assisted Stretches?</p>
+      <div style={{ display: "flex", gap: 14 }}>
+        <div onClick={() => onChange("new")} style={optStyle(value === "new")}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+            <IconNewClient color={value === "new" ? C.bone : C.forest} />
+          </div>
+          <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>New client</div>
+          <div style={{ fontSize: 13, opacity: 0.7, lineHeight: 1.5 }}>First visit — you'll complete a short health waiver</div>
+        </div>
+        <div onClick={() => onChange("returning")} style={optStyle(value === "returning")}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+            <IconReturningClient color={value === "returning" ? C.bone : C.forest} />
+          </div>
+          <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>Returning client</div>
+          <div style={{ fontSize: 13, opacity: 0.7, lineHeight: 1.5 }}>Welcome back — skip straight to booking</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── WAIVER STEP ─────────────────────────────────────────────
+function WaiverStep({ value, onChange }) {
+  const canvasRef = useRef(null);
+  const drawing   = useRef(false);
+  const inputStyle = { width: "100%", padding: "11px 14px", borderRadius: 8, border: `1.5px solid ${C.boneDark}`, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: C.forest, background: C.white, outline: "none", boxSizing: "border-box" };
+  const labelStyle = { fontSize: 11.5, fontWeight: 600, color: C.clay, letterSpacing: "0.08em", marginBottom: 5, display: "block" };
+  const areaStyle  = { ...inputStyle, resize: "vertical", minHeight: 80 };
+  const f = (key) => ({ value: value[key] || "", onChange: e => onChange({ ...value, [key]: e.target.value }) });
+
+  // Canvas signature helpers
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.strokeStyle = C.forest;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+
+    const pos = (e) => {
+      const r = canvas.getBoundingClientRect();
+      const src = e.touches ? e.touches[0] : e;
+      return [src.clientX - r.left, src.clientY - r.top];
+    };
+    const start = (e) => { e.preventDefault(); drawing.current = true; const [x,y] = pos(e); ctx.beginPath(); ctx.moveTo(x,y); };
+    const move  = (e) => { e.preventDefault(); if (!drawing.current) return; const [x,y] = pos(e); ctx.lineTo(x,y); ctx.stroke(); };
+    const end   = ()  => { drawing.current = false; onChange(v => ({ ...v, signature: canvas.toDataURL() })); };
+
+    canvas.addEventListener("mousedown",  start);
+    canvas.addEventListener("mousemove",  move);
+    canvas.addEventListener("mouseup",    end);
+    canvas.addEventListener("mouseleave", end);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove",  move,  { passive: false });
+    canvas.addEventListener("touchend",   end);
+    return () => {
+      canvas.removeEventListener("mousedown",  start);
+      canvas.removeEventListener("mousemove",  move);
+      canvas.removeEventListener("mouseup",    end);
+      canvas.removeEventListener("mouseleave", end);
+      canvas.removeEventListener("touchstart", start);
+      canvas.removeEventListener("touchmove",  move);
+      canvas.removeEventListener("touchend",   end);
+    };
+  }, []);
+
+  const clearSig = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    onChange(v => ({ ...v, signature: null }));
+  };
+
+  const row = (label, key, type="text", placeholder="") => (
+    <div style={{ marginBottom: 14 }}>
+      <label style={labelStyle}>{label}</label>
+      <input type={type} placeholder={placeholder} {...f(key)} style={inputStyle} />
+    </div>
+  );
+  const area = (label, key, placeholder="") => (
+    <div style={{ marginBottom: 14 }}>
+      <label style={labelStyle}>{label}</label>
+      <textarea placeholder={placeholder} {...f(key)} style={areaStyle} />
+    </div>
+  );
+  const check = (key, text) => (
+    <label style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 14, cursor: "pointer" }}>
+      <input type="checkbox" checked={!!value[key]} onChange={e => onChange(v => ({ ...v, [key]: e.target.checked }))}
+        style={{ marginTop: 3, width: 16, height: 16, accentColor: C.forest, flexShrink: 0 }} />
+      <span style={{ fontSize: 13.5, color: C.forest, lineHeight: 1.55 }}>{text}</span>
+    </label>
+  );
+
+  return (
+    <div>
+      <h2 style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 400, color: C.forest, marginBottom: 6 }}>New Client Waiver</h2>
+      <p style={{ fontSize: 13.5, color: C.textSec, marginBottom: 20, lineHeight: 1.6 }}>Please answer all questions prior to arriving at your first stretch appointment.</p>
+
+      {row("Date of Birth", "date_of_birth", "date")}
+      {row("How did you hear about us?", "heard_about_us", "text", "e.g. Google, Instagram, friend…")}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+        <div><label style={labelStyle}>Hours of sleep per night?</label><input type="number" min="1" max="24" {...f("sleep_hours")} style={inputStyle} /></div>
+        <div><label style={labelStyle}>Sleep quality (1–10)?</label><input type="number" min="1" max="10" {...f("sleep_quality")} style={inputStyle} /></div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+        <div><label style={labelStyle}>Litres of water per day?</label><input type="number" min="0" step="0.5" {...f("water_litres")} style={inputStyle} /></div>
+        <div><label style={labelStyle}>Times you exercise per week?</label><input type="number" min="0" {...f("exercise_frequency")} style={inputStyle} /></div>
+      </div>
+
+      {area("What type of exercise do you participate in regularly?", "exercise_types", "e.g. gym, running, yoga…")}
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>Rate your ability to exercise (1–10) — 1 = can't exercise, 10 = unstoppable</label>
+        <input type="number" min="1" max="10" {...f("exercise_ability")} style={inputStyle} />
+      </div>
+      {area("Do you have any pre-existing injuries? If so, please explain.", "injuries", "Describe any injuries…")}
+      {area("Have you had any surgeries? If so, please explain and give a rough date.", "surgeries", "Describe surgeries and dates…")}
+      {area("What do you want to get out of stretching?", "goals", "Your goals…")}
+
+      <div style={{ borderTop: `1px solid ${C.boneDark}`, paddingTop: 16, marginBottom: 16 }}>
+        {check("agree_cancellation", "I accept the 24hr cancellation policy and agree to pay the cancellation fee in the event I cancel within 24hrs of my appointment time.")}
+        {check("agree_injuries_disclosed", "I have notified my practitioner of all current and past injuries, pains, surgeries and treatments.")}
+        {check("agree_liability", "I understand that flexibility training may make any pre-existing injuries or conditions worse, but wish to continue with treatment and will not hold Assisted Stretches at fault for any future complications I may experience.")}
+      </div>
+
+      <div>
+        <label style={labelStyle}>Signature</label>
+        <div style={{ border: `1.5px solid ${C.boneDark}`, borderRadius: 8, background: C.white, position: "relative" }}>
+          <canvas ref={canvasRef} width={440} height={120} style={{ width: "100%", height: 120, display: "block", borderRadius: 8, cursor: "crosshair", touchAction: "none" }} />
+          <button onClick={clearSig} style={{ position: "absolute", top: 8, right: 8, background: "none", border: `1px solid ${C.sand}`, borderRadius: 4, padding: "2px 10px", fontSize: 12, color: C.textSec, cursor: "pointer" }}>Clear</button>
+        </div>
+        <p style={{ fontSize: 11.5, color: C.textSec, marginTop: 6 }}>Draw your signature above using your mouse or finger.</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── CONTACT STEP (regular + gift card) ──────────────────────
 function ContactStep({ value, onChange, isGiftCard, selectedProduct, onProductSelect }) {
   const field = key => ({ value: value[key] || "", onChange: e => onChange({ ...value, [key]: e.target.value }) });
@@ -416,23 +596,22 @@ function ContactStep({ value, onChange, isGiftCard, selectedProduct, onProductSe
           <>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 4 }}>
               {GIFT_DENOMS.map(d => {
-                const active = selectedProduct?.id === d.product.id;
+                const isSelected = selectedProduct?.id === d.product.id;
                 return (
-                  <button key={d.sessions} onClick={() => onProductSelect(d.product)} style={{ background: active ? C.forest : C.white, color: active ? C.bone : C.forest, border: `1.5px solid ${active ? C.forest : C.boneDark}`, borderRadius: 10, padding: "16px 18px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                      <div>
-                        <span style={{ fontWeight: 600, fontSize: 15 }}>{d.sessions === 1 ? "1 session" : `${d.sessions} sessions`}</span>
-                        {d.saving && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, background: C.terracotta, color: C.bone, padding: "2px 8px", borderRadius: 20, letterSpacing: "0.06em" }}>{d.saving}</span>}
-                      </div>
-                      <span style={{ fontFamily: "Georgia, serif", fontSize: 20, fontWeight: 400, flexShrink: 0 }}>{d.price}</span>
+                  <button key={d.product.id} onClick={() => onProductSelect(d.product)}
+                    style={{ width: "100%", textAlign: "left", padding: "14px 18px", borderRadius: 10, border: `1.5px solid ${isSelected ? C.forest : C.boneDark}`, background: isSelected ? C.forest : C.white, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", transition: "all 0.15s" }}>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: 15, color: isSelected ? C.white : C.forest }}>{d.sessions === 1 ? "1 session" : `${d.sessions} sessions`}</span>
+                      {d.saving && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, background: C.terracotta, color: C.white, borderRadius: 4, padding: "2px 6px" }}>Save {d.saving}</span>}
+                      <div style={{ fontSize: 12.5, marginTop: 3, opacity: 0.65, fontStyle: "italic", color: isSelected ? C.white : C.textSec }}>{d.tagline}</div>
                     </div>
-                    <div style={{ fontSize: 12.5, marginTop: 4, opacity: 0.65, fontStyle: "italic" }}>{d.tagline}</div>
+                    <span style={{ fontFamily: "Georgia, serif", fontSize: 20, fontWeight: 400, color: isSelected ? C.white : C.forest }}>{d.price}</span>
                   </button>
                 );
               })}
             </div>
             <div style={{ fontSize: 12, color: C.textSec, background: C.white, border: `1px solid ${C.boneDark}`, borderRadius: 8, padding: "10px 14px", lineHeight: 1.6 }}>
-              📧 Digital gift card — sent instantly to the recipient's email. Valid for 12 months.
+              Gift card — sent instantly to the recipient's email. Valid for 6 months.
             </div>
           </>
         )}
@@ -573,9 +752,113 @@ function GiftCodePanel({ onSuccess, booking }) {
 function PaymentForm({ booking, onSuccess, isGiftFlow }) {
   const stripe   = useStripe();
   const elements = useElements();
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState(null);
-  const [useGift, setUseGift] = useState(false);
+  const [loading,        setLoading]        = useState(false);
+  const [error,          setError]          = useState(null);
+  const [useGift,        setUseGift]        = useState(false);
+  const [paymentRequest, setPaymentRequest] = useState(null);
+  const [prAvailable,    setPrAvailable]    = useState(false);
+
+  // ── Apple Pay / Google Pay via Stripe Payment Request ──────
+  useEffect(() => {
+    if (!stripe) return;
+
+    // Amount in cents
+    const depositCents = isGiftFlow
+      ? (booking.product?.price ?? 125) * 100   // full product price for gift cards
+      : 5000;                                    // $50 deposit for regular sessions
+
+    const label = isGiftFlow
+      ? (booking.product?.label ?? "Gift Card")
+      : "Session Deposit";
+
+    const pr = stripe.paymentRequest({
+      country:  "AU",
+      currency: "aud",
+      total: { label, amount: depositCents },
+      requestPayerName:  true,
+      requestPayerEmail: true,
+      requestPayerPhone: true,
+    });
+
+    pr.canMakePayment().then(result => {
+      if (result) {
+        setPaymentRequest(pr);
+        setPrAvailable(true);
+      }
+    });
+
+    pr.on("paymentmethod", async ev => {
+      setLoading(true); setError(null);
+      try {
+        // 1. Create PaymentIntent
+        const intentRes = await fetch("/api/payments/intent", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product_id: isGiftFlow ? "gift-session" : booking.product?.id }),
+        });
+        const intentData = await intentRes.json();
+        const { clientSecret, error: intentErr } = intentData;
+        if (intentErr) throw new Error(intentErr);
+
+        // 2. Confirm with the payment method from the wallet sheet
+        const { error: confirmErr, paymentIntent } = await stripe.confirmCardPayment(
+          clientSecret,
+          { payment_method: ev.paymentMethod.id },
+          { handleActions: false }
+        );
+        if (confirmErr) { ev.complete("fail"); throw new Error(confirmErr.message); }
+
+        // 3. Complete the sheet (close Apple Pay / Google Pay UI)
+        ev.complete("success");
+
+        if (paymentIntent.status === "requires_action") {
+          const { error: actionErr } = await stripe.confirmCardPayment(clientSecret);
+          if (actionErr) throw new Error(actionErr.message);
+        }
+
+        // 4. Record booking / gift card
+        let giftCode = null;
+        if (isGiftFlow) {
+          const res = await fetch("/api/gift-cards/purchase", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product_id:           booking.product?.id,
+              purchaser_first_name: booking.contact.firstName,
+              purchaser_last_name:  booking.contact.lastName,
+              purchaser_email:      booking.contact.email,
+              purchaser_phone:      booking.contact.phone,
+              recipient_name:       booking.contact.recipientName  || null,
+              recipient_email:      booking.contact.recipientEmail || null,
+              gift_message:         booking.contact.notes          || null,
+              stripe_payment_id:    paymentIntent.id,
+            }),
+          });
+          const data = await res.json();
+          giftCode = data.code || null;
+        } else {
+          await fetch("/api/bookings", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              first_name: booking.contact.firstName, last_name: booking.contact.lastName,
+              email: booking.contact.email, phone: booking.contact.phone,
+              product_id:   booking.product?.id,
+              session_date: booking.date?.toLocaleDateString("en-AU"),
+              session_time: booking.time,
+              notes:        booking.contact.notes,
+              stripe_payment_id: paymentIntent.id,
+            }),
+          });
+        }
+        onSuccess("stripe", giftCode);
+      } catch (err) {
+        setError(err.message || "Payment failed.");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => { pr.off("paymentmethod"); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stripe]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -585,9 +868,13 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
       // 1. Create PaymentIntent on server
       const intentRes = await fetch("/api/payments/intent", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: booking.product?.id }),
+        body: JSON.stringify({ product_id: isGiftFlow ? 'gift-session' : booking.product?.id }),
       });
-      const { clientSecret, paymentIntentId, error: intentErr } = await intentRes.json();
+      const intentText = await intentRes.text();
+      if (!intentText) throw new Error("Server returned an empty response. Please check the server is running.");
+      let intentData;
+      try { intentData = JSON.parse(intentText); } catch { throw new Error("Server error: " + intentText.slice(0, 120)); }
+      const { clientSecret, paymentIntentId, error: intentErr } = intentData;
       if (intentErr) throw new Error(intentErr);
 
       // 2. Confirm card payment with Stripe
@@ -641,7 +928,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     <form onSubmit={handleSubmit}>
       <h2 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 400, color: C.forest, marginBottom: 8 }}>Payment</h2>
       <p style={{ fontSize: 14, color: C.textSec, marginBottom: 24, lineHeight: 1.6 }}>
-        Your card will be charged <strong style={{ color: C.forest }}>${booking.product?.price?.toLocaleString()}</strong> once confirmed.
+        A <strong style={{ color: C.forest }}>$50 deposit</strong> is charged now to secure your booking. The remaining <strong style={{ color: C.forest }}>$75</strong> is payable on the day.
       </p>
       <BookingSummary booking={booking} isGiftFlow={isGiftFlow} />
       {!isGiftFlow && (
@@ -654,16 +941,39 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
       )}
       {!useGift && (
         <>
+          {/* ── Apple Pay / Google Pay button ── */}
+          {prAvailable && paymentRequest && (
+            <div style={{ marginBottom: 16 }}>
+              <PaymentRequestButtonElement
+                options={{
+                  paymentRequest,
+                  style: {
+                    paymentRequestButton: {
+                      type:   "default",
+                      theme:  "dark",
+                      height: "48px",
+                    },
+                  },
+                }}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0 4px" }}>
+                <div style={{ flex: 1, height: 1, background: C.boneDark }} />
+                <span style={{ fontSize: 12, color: C.textSec, fontWeight: 500, letterSpacing: "0.06em" }}>OR PAY BY CARD</span>
+                <div style={{ flex: 1, height: 1, background: C.boneDark }} />
+              </div>
+            </div>
+          )}
+
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: C.clay, letterSpacing: "0.08em", marginBottom: 8, display: "block" }}>CARD DETAILS</label>
             <div style={{ padding: "14px", border: `1.5px solid ${C.boneDark}`, borderRadius: 8, background: C.white }}>
-              <CardElement options={{ style: { base: { fontSize: "15px", color: C.forest, fontFamily: "'DM Sans', sans-serif", "::placeholder": { color: C.sand } }, invalid: { color: "#e53e3e" } } }} />
+              <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: "15px", color: C.forest, fontFamily: "'DM Sans', sans-serif", "::placeholder": { color: C.sand } }, invalid: { color: "#e53e3e" } } }} />
             </div>
           </div>
           {DEMO_MODE && <div style={{ background: "#FFF8E7", border: "1px solid #F0C040", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7A5500", marginBottom: 16 }}><strong>Demo mode</strong> — add your Stripe key to <code>.env</code> to enable real payments.</div>}
           {error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
-            {loading ? "Processing…" : `Confirm & Pay $${booking.product?.price?.toLocaleString()}`}
+            {loading ? "Processing…" : "Confirm & Pay Deposit $50"}
           </button>
         </>
       )}
@@ -754,7 +1064,7 @@ function DemoPaymentForm({ booking, onSuccess, isGiftFlow }) {
             <strong>Demo mode</strong> — add your Stripe publishable key to <code>.env</code> to enable real payments.
           </div>
           <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
-            {loading ? "Processing…" : `Confirm & Pay $${booking.product?.price?.toLocaleString()}`}
+            {loading ? "Processing…" : "Confirm & Pay Deposit $50"}
           </button>
         </>
       )}
@@ -838,8 +1148,9 @@ function Confirmation({ booking, onClose, isGiftFlow }) {
         {booking.date?.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })} at {booking.time}.
       </p>
       <div style={{ background: C.white, border: `1px solid ${C.boneDark}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28, textAlign: "left", fontSize: 13.5, lineHeight: 2.1, color: C.textSec }}>
-        <div>📍 <strong style={{ color: C.forest }}>Location:</strong> [Studio address — add yours here]</div>
-        <div>🕐 <strong style={{ color: C.forest }}>Arrive:</strong> 5 minutes early in comfortable clothing</div>
+        <div>📍 <strong style={{ color: C.forest }}>Location:</strong> 41 Barton Parade, Balmoral QLD 4171</div>
+        <div>🚗 <strong style={{ color: C.forest }}>Parking:</strong> Street parking available on Barton Parade</div>
+        <div>🪑 <strong style={{ color: C.forest }}>On arrival:</strong> Make yourself comfortable on the sofa on the front porch — I'll collect you for your appointment</div>
         <div>↩️ <strong style={{ color: C.forest }}>Cancel / reschedule:</strong> Up to 24 hours before</div>
       </div>
       <button onClick={onClose} style={{ ...btn("primary"), padding: "14px 40px", fontSize: 15 }}>Done</button>
@@ -864,19 +1175,20 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
         // Build products from server pricing
         const products = [
-          { id: 'session', label: 'Single Session', price: p.session || 125,    per: null,                                              desc: '1 × 60-min assisted stretch session', badge: null },
-          { id: '5-pack',  label: '5-Pack',          price: p['5-pack'] || 575,  per: Math.round((p['5-pack'] || 575) / 5),              desc: '5 × 60-min sessions · Valid 6 months', badge: 'Popular' },
-          { id: '10-pack', label: '10-Pack',          price: p['10-pack'] || 1000, per: Math.round((p['10-pack'] || 1000) / 10),          desc: '10 × 60-min sessions · Valid 12 months', badge: null },
+          { id: 'session', label: 'Single Session', price: p.session || 125,   per: null,                                 desc: '1 × 60-min assisted stretch session', badge: null },
+          { id: '5-pack',  label: '5-Pack',          price: p['5-pack'] || 575, per: Math.round((p['5-pack'] || 575) / 5), desc: '5 × 60-min sessions · Valid 6 months', badge: 'Popular' },
         ];
         setLiveProducts(products);
 
         // Build available days Set from av.days array of day numbers
         if (av.days) setLiveAvailDays(new Set(av.days));
 
-        // Build slots by day number
+        // Build slots by day number — use string keys to avoid any numeric coercion issues
         if (av.slots) {
           const numericSlots = {};
-          Object.entries(av.slots).forEach(([k, v]) => { numericSlots[Number(k)] = v; });
+          Object.entries(av.slots).forEach(([k, v]) => {
+            numericSlots[Number(k)] = v;
+          });
           setLiveSlotsByDay(numericSlots);
         }
 
@@ -895,10 +1207,10 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const [done,       setDone]      = useState(false);
   const [takenSlots, setTakenSlots] = useState([]);
 
-  // Gift card flow state (giftStep 0–4)
-  // 0=Details/denomination, 1=Payment, 2=Service(confirmation), 3=Date, 4=Time
+  // Gift card flow state (giftStep 0–2)
+  // 0=Details/denomination, 1=Payment, 2=Confirm
   const [giftStep,     setGiftStep]    = useState(0);
-  const [giftProduct,  setGiftProduct] = useState(null);
+  const [giftProduct,  setGiftProduct] = useState(PRODUCTS[0]);
   const [giftContact,  setGiftContact] = useState({});
   const [giftDate,     setGiftDate]    = useState(null);
   const [giftTime,     setGiftTime]    = useState(null);
@@ -908,13 +1220,16 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
   const isGiftCardFlow = initialStep === 3;
 
+  // ── Booking date bounds (3-month rolling window from launch date) ──
+  const { minDate: bookingMinDate, maxDate: bookingMaxDate } = getBookingDateBounds();
+
   useEffect(() => {
     if (isOpen || mode === 'page') {
       setStep(initialProduct ? 1 : 0);
       setProduct(initialProduct || null);
       setDate(null); setTime(null); setContact({}); setDone(false);
       setGiftStep(0);
-      setGiftProduct(null); setGiftContact({}); setGiftDate(null); setGiftTime(null);
+      setGiftProduct(PRODUCTS[0]); setGiftContact({}); setGiftDate(null); setGiftTime(null);
       setGiftDone(false); setGiftCode(null); setGiftSessions([]);
     }
   }, [isOpen]);
@@ -931,7 +1246,11 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     const ddmmyyyy = date.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
     fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`)
       .then(r => r.json())
-      .then(d => setTakenSlots(d.taken || []))
+      .then(d => {
+        // d.taken may be an array of booked slots, or 'all' string for holidays
+        const taken = Array.isArray(d.taken) ? d.taken : [];
+        setTakenSlots(taken);
+      })
       .catch(() => setTakenSlots([]));
   }, [date]);
 
@@ -944,13 +1263,10 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   // ── Gift card flow canNext
   const giftCanNext =
     giftStep === 0 ? (!!(giftProduct && giftContact.firstName && giftContact.lastName && giftContact.email && giftContact.phone)) :
-    giftStep === 2 ? true :   // "Service" step is just info — always can continue
-    giftStep === 3 ? !!giftDate :
-    giftStep === 4 ? !!giftTime :
+    giftStep === 2 ? true :
     false;
 
   // ── Regular flow canNext
-  const isGiftCardFlowStep3 = false; // never in gift card flow for regular
   const regCanNext = [
     !!product,
     !!date,
@@ -965,37 +1281,12 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const regBooking  = { product, date, time, contact };
 
   const handleGiftPaymentSuccess = (_method, code) => { setGiftCode(code); setGiftStep(2); };
-  const handleRegPaymentSuccess  = () => setDone(true);
+  const handleRegPaymentSuccess  = async () => { setDone(true); };
 
   const handleNext = async () => {
     if (isGiftCardFlow) {
-      if (giftStep === 4) {
-        // Redeem one session credit and record booking
-        if (giftCode) {
-          try {
-            await fetch("/api/gift-cards/redeem", {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                code: giftCode,
-                booking: {
-                  first_name: giftContact.firstName, last_name: giftContact.lastName,
-                  email: giftContact.email, phone: giftContact.phone,
-                  session_date: giftDate?.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" }),
-                  session_time: giftTime, notes: null,
-                },
-              }),
-            });
-          } catch (_) {}
-        }
-        const newSessions = [...giftSessions, { date: giftDate, time: giftTime }];
-        setGiftSessions(newSessions);
-        setGiftDate(null);
-        setGiftTime(null);
-        if (newSessions.length < maxGiftSessions) {
-          setGiftStep(3); // loop back to date for next session
-        } else {
-          setGiftDone(true);
-        }
+      if (giftStep === 2) {
+        setGiftDone(true);
       } else {
         setGiftStep(s => s + 1);
       }
@@ -1021,18 +1312,18 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
       </Elements>;
 
   const isDone = isGiftCardFlow ? giftDone : done;
+  // (customer type / waiver pre-steps removed — collected separately or at studio)
 
   // Determine if current view needs nav buttons
-  // Gift: step 1 (payment) and step 4 with time selected trigger their own buttons
   const showNavBtns = !isDone && (
     isGiftCardFlow
-      ? (giftStep === 0 || giftStep === 2 || giftStep === 3 || giftStep === 4)
+      ? (giftStep === 0 || giftStep === 2)
       : (step < 4)
   );
 
   const nextLabel =
     isGiftCardFlow
-      ? (giftStep === 0 ? "Continue to payment →" : giftStep === 2 ? "Choose a date →" : giftStep === 3 ? "Choose a time →" : "Confirm booking →")
+      ? (giftStep === 0 ? "Continue to payment →" : "Done ✓")
       : (step === 3 ? "Continue to payment →" : "Continue →");
 
   // ── Page mode render ──────────────────────────────────────
@@ -1050,17 +1341,22 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
           ) : (
             <>
               {step === 0 && <PagePricingStep selected={product} onSelect={setProduct} products={liveProducts} />}
-              {step === 1 && <DateStep value={date} onChange={setDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
-              {step === 2 && <TimeStep date={date} value={time} onChange={setTime} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
+              {step === 1 && <DateStep value={date} onChange={d => { setDate(d); setTime(null); }} minDate={bookingMinDate} maxDate={bookingMaxDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
+              {step === 2 && <TimeStep date={date} value={time} onChange={t => { setTime(t); setTimeout(() => setStep(3), 180); }} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
               {step === 3 && <ContactStep value={contact} onChange={setContact} isGiftCard={false} />}
               {step === 4 && paymentNode}
 
-              {showNavBtns && (
+              {showNavBtns && step !== 2 && (
                 <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
                   {step > 0 && <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>}
-                  <button onClick={() => canNext && handleNext()} style={{ ...btn("primary"), flex: 2, cursor: canNext ? "pointer" : "not-allowed" }}>
+                  <button onClick={() => canNext && handleNext()} style={{ ...btn("primary"), flex: step > 0 ? 2 : 1, cursor: canNext ? "pointer" : "not-allowed", opacity: canNext ? 1 : 0.45 }}>
                     {step === 3 ? "Continue to payment →" : "Continue →"}
                   </button>
+                </div>
+              )}
+              {step === 2 && (
+                <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+                  <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>
                 </div>
               )}
               {step === 4 && (
@@ -1078,20 +1374,20 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     <div style={overlayStyle} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={sheetStyle}>
         {/* Header */}
-        <div style={{ padding: "24px 28px 20px", borderBottom: `1px solid ${C.boneDark}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ padding: "14px 24px 12px", borderBottom: `1px solid ${C.boneDark}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: 15, color: C.textSec, fontStyle: "italic" }}>Assisted Stretches</div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: C.textSec, lineHeight: 1, padding: "0 4px" }}>×</button>
         </div>
 
         {/* Step bar */}
         {!isDone && (
-          <div style={{ padding: "20px 28px 16px" }}>
+          <div style={{ padding: "10px 24px 8px" }}>
             {isGiftCardFlow ? <GiftStepBar giftStep={giftStep} /> : <StepBar step={step} />}
           </div>
         )}
 
         {/* Body */}
-        <div style={{ padding: "8px 28px 28px" }}>
+        <div style={{ padding: "6px 24px 20px" }}>
           {isDone ? (
             <Confirmation booking={isGiftCardFlow ? giftBooking : regBooking} onClose={onClose} isGiftFlow={isGiftCardFlow} />
           ) : isGiftCardFlow ? (
@@ -1099,23 +1395,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
               {giftStep === 0 && <ContactStep value={giftContact} onChange={setGiftContact} isGiftCard selectedProduct={giftProduct} onProductSelect={setGiftProduct} />}
               {giftStep === 1 && paymentNode}
               {giftStep === 2 && <GiftServiceStep product={giftProduct} maxSessions={maxGiftSessions} />}
-              {giftStep === 3 && <DateStep value={giftDate} onChange={setGiftDate} maxDate={giftMaxDate} sessionNum={giftSessionNum} maxSessions={maxGiftSessions} availableDays={liveAvailDays} holidays={liveHolidays} />}
-              {giftStep === 4 && <TimeStep date={giftDate} value={giftTime} onChange={setGiftTime} sessionNum={giftSessionNum} maxSessions={maxGiftSessions} slotsByDay={liveSlotsByDay} />}
 
               {showNavBtns && (
-                <div style={{ display: "flex", gap: 12, marginTop: 28 }}>
+                <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   {giftStep > 0 && giftStep !== 1 && giftSessions.length === 0 && (
                     <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>
                   )}
                   <button onClick={handleNext} disabled={!canNext} style={{ ...btn("primary"), flex: 2, opacity: canNext ? 1 : 0.45, cursor: canNext ? "pointer" : "default" }}>
                     {nextLabel}
-                  </button>
-                </div>
-              )}
-              {maxGiftSessions > 1 && giftSessions.length > 0 && (giftStep === 3 || giftStep === 4) && (
-                <div style={{ textAlign: "center", marginTop: 12 }}>
-                  <button onClick={finishBookingEarly} style={{ background: "none", border: "none", color: C.textSec, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
-                    Done for now — book remaining sessions later with my gift card code
                   </button>
                 </div>
               )}
@@ -1126,17 +1413,23 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
           ) : (
             <>
               {step === 0 && <ServiceStep selected={product} onSelect={setProduct} initialProduct={initialProduct} products={liveProducts} />}
-              {step === 1 && <DateStep value={date} onChange={setDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
-              {step === 2 && <TimeStep date={date} value={time} onChange={setTime} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
+              {step === 1 && <DateStep value={date} onChange={d => { setDate(d); setTime(null); }} minDate={bookingMinDate} maxDate={bookingMaxDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
+              {step === 2 && <TimeStep date={date} value={time} onChange={t => { setTime(t); setTimeout(() => setStep(3), 180); }} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
               {step === 3 && <ContactStep value={contact} onChange={setContact} isGiftCard={false} />}
               {step === 4 && paymentNode}
 
-              {showNavBtns && (
-                <div style={{ display: "flex", gap: 12, marginTop: 28 }}>
+              {showNavBtns && step !== 2 && (
+                <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   {step > 0 && <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>}
-                  <button onClick={handleNext} disabled={!canNext} style={{ ...btn("primary"), flex: 2, opacity: canNext ? 1 : 0.45, cursor: canNext ? "pointer" : "default" }}>
+                  <button onClick={handleNext} disabled={!canNext} style={{ ...btn("primary"), flex: step > 0 ? 2 : 1, opacity: canNext ? 1 : 0.45, cursor: canNext ? "pointer" : "default" }}>
                     {step === 3 ? "Continue to payment →" : "Continue →"}
                   </button>
+                </div>
+              )}
+              {/* Time step: show back button only, auto-advances on selection */}
+              {step === 2 && (
+                <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+                  <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>
                 </div>
               )}
               {step === 4 && (

@@ -7,6 +7,12 @@ const { sendBookingConfirmationEmail } = require('../lib/mailer');
 
 const CONFIG_FILE = path.join(__dirname, '../data/config.json');
 
+const PRODUCT_LABELS = {
+  'session':  '60 minute studio stretch session',
+  '5-pack':   '5-Pack — 60 minute studio stretch sessions',
+  '10-pack':  '10-Pack — 60 minute studio stretch sessions',
+};
+
 function readConfig() {
   try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
   catch { return {}; }
@@ -89,7 +95,7 @@ router.post('/', async (req, res) => {
     store.clients.upsert({ first_name, last_name, email, phone, source: 'booking', created_at: now });
 
     try {
-      await sendBookingConfirmationEmail({ email, firstName: first_name, sessionDate: session_date, sessionTime: session_time, productLabel: product_id });
+      await sendBookingConfirmationEmail({ email, firstName: first_name, lastName: last_name, phone, sessionDate: session_date, sessionTime: session_time, productLabel: PRODUCT_LABELS[product_id] || product_id, notes: notes || null });
     } catch (mailErr) {
       console.error('Confirmation email failed (non-fatal):', mailErr.message);
     }

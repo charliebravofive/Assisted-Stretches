@@ -1,0 +1,9 @@
+{
+  "name": "assisted-stretches",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm install --prefix server && npm install --prefix web && npm run build --prefix web",
+    "start": "node server/index.js"
+  }
+}

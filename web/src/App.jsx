@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import BookingModal, { PRODUCTS } from "./BookingModal.jsx";
+import BookingModal from "./BookingModal.jsx";
+import { PRODUCTS } from "./products.js";
 import { usePageMeta } from "./usePageMeta.js";
 import { useJsonLd } from "./useJsonLd.js";
 
@@ -13,7 +14,6 @@ const PAGES = {
   tenPack: "10-pack",
   giftCards: "gift-cards",
   faq: "faq",
-  booking: "booking",
   contact: "contact",
 };
 
@@ -136,6 +136,11 @@ const globalStyles = `
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  p {
+    font-family: var(--font-display);
+    font-style: italic;
+  }
+
   :root {
     --charcoal: #1A1816;
     --deep-clay: #9C5E3C;
@@ -169,14 +174,93 @@ const globalStyles = `
 
   @media (max-width: 768px) {
     .desktop-nav { display: none !important; }
-    .mobile-menu-btn { display: block !important; }
+    .mobile-menu-btn { display: flex !important; }
+
+    /* Reduce large italic paragraph sizes on mobile */
+    p { font-size: clamp(14px, 3.8vw, 18px) !important; }
+    h1 { font-size: clamp(28px, 7vw, 48px) !important; }
+    h2 { font-size: clamp(22px, 5.5vw, 36px) !important; }
     .hero-grid, .bio-grid { grid-template-columns: 1fr !important; }
+    .hero-grid > *:first-child { order: 1; }
+    .hero-grid > *:last-child  { order: 2; }
+
+    /* Nav logo — shrink from 224px to 72px tall */
+    .nav-logo-wrap svg { width: 110px !important; height: 77px !important; }
+
+    /* Footer logo */
+    .footer-logo-wrap svg { width: 110px !important; height: 77px !important; }
+    .footer-logo-wrap { margin-bottom: 4px !important; margin-top: -12px !important; margin-left: -10px !important; }
+
+    /* 4-col grid → 2 cols on tablet */
+    .benefits-4col { grid-template-columns: 1fr 1fr !important; }
+
+    /* About hero: drop fixed height */
+    .about-hero-section { height: auto !important; padding-top: 32px !important; padding-bottom: 32px !important; }
+
+    /* Reduce section vertical padding */
+    section { padding-top: 36px !important; padding-bottom: 36px !important; }
+
+    /* Reduce container padding */
+    .container-inner { padding-left: 18px !important; padding-right: 18px !important; }
+
+    /* Trust bar: scroll horizontally rather than wrapping oddly */
+    .trust-bar-inner { flex-wrap: nowrap !important; overflow-x: auto !important; justify-content: flex-start !important; padding-bottom: 4px !important; scrollbar-width: none !important; }
+    .trust-bar-inner::-webkit-scrollbar { display: none; }
+
+    /* Stats row */
+    .stats-row { gap: 20px !important; justify-content: center !important; }
+
+    /* Table: allow scroll */
+    .comparison-table-wrap { margin: 0 -18px !important; padding: 0 18px !important; }
+
+    /* Body padding for sticky book btn */
+    body { padding-bottom: 68px; }
   }
+
   @media (max-width: 480px) {
     .footer-grid { grid-template-columns: 1fr !important; }
+    .benefits-4col { grid-template-columns: 1fr !important; }
+    .nav-logo-wrap svg { width: 88px !important; height: 62px !important; }
+
+    /* Pricing cards stack */
+    .pricing-grid { grid-template-columns: 1fr !important; }
   }
+
   @media (min-width: 481px) and (max-width: 768px) {
     .footer-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+
+  /* Sticky mobile Book Now button */
+  .mobile-sticky-book {
+    display: none;
+  }
+  .desktop-sticky-cta {
+    display: flex;
+  }
+  @media (max-width: 768px) {
+    .desktop-sticky-cta { display: none !important; }
+    .mobile-sticky-book {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      background: var(--terracotta);
+      color: var(--bone);
+      border: none;
+      padding: 16px 28px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      font-family: var(--font-body);
+      font-size: 15.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+    }
   }
 `;
 
@@ -200,7 +284,7 @@ function BrandLogo({ height = 56, light = false }) {
 
 // ─── PRIMITIVES ─────────────────────────────────────────────
 function Container({ children, style = {} }) {
-  return <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", ...style }}>{children}</div>;
+  return <div className="container-inner" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", ...style }}>{children}</div>;
 }
 
 function Section({ children, style = {}, dark = false, id }) {
@@ -219,7 +303,7 @@ function SectionTitle({ children, sub }) {
   return (
     <div style={{ marginBottom: sub ? 12 : 24 }}>
       <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 400, lineHeight: 1.12, color: "inherit", letterSpacing: "-0.01em", maxWidth: 720 }}>{children}</h2>
-      {sub && <p style={{ fontSize: 15.5, lineHeight: 1.65, color: "var(--text-secondary)", marginTop: 12, maxWidth: 580 }}>{sub}</p>}
+      {sub && <p style={{ fontFamily: "var(--font-display)", fontSize: 21, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", marginTop: 12, maxWidth: 580 }}>{sub}</p>}
     </div>
   );
 }
@@ -325,7 +409,7 @@ function GiftCardVisual({ sessions = 1, width = "100%" }) {
       <text x="178" y="376" fontFamily="'Courier New', monospace" fontSize="15" fontWeight="700" fill="#c8856a" textAnchor="middle" letterSpacing="3">AS-XXXX-XXXX</text>
 
       {/* bottom label */}
-      <text x={cardW - 68} y="392" fontFamily="Georgia, 'Times New Roman', serif" fontSize="11" fill="#f0ece6" fillOpacity="0.35" textAnchor="end" letterSpacing="2">VALID 12 MONTHS · www.assistedstretches.com</text>
+      <text x={cardW - 68} y="392" fontFamily="Georgia, 'Times New Roman', serif" fontSize="11" fill="#f0ece6" fillOpacity="0.35" textAnchor="end" letterSpacing="2">VALID 6 MONTHS · www.assistedstretches.com</text>
     </svg>
   );
 }
@@ -352,8 +436,6 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
     { label: "Home",        type: "page",   target: PAGES.home },
     { label: "Benefits",    type: "page",   target: PAGES.benefits },
     { label: "About",       type: "page",   target: PAGES.about },
-    { label: "Booking",     type: "page",   target: PAGES.booking },
-    { label: "Gift Cards",  type: "page",   target: PAGES.giftCards },
     { label: "FAQs",        type: "page",   target: PAGES.faq },
     { label: "Contact",     type: "page",   target: PAGES.contact },
   ];
@@ -373,7 +455,7 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 100, background: "#1A1816", borderBottom: "1px solid rgba(240,236,230,0.08)", transition: "all 0.35s ease" }}>
       <div style={{ width: "100%", padding: "2px 28px 2px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div onClick={() => setPage(PAGES.session)} style={{ cursor: "pointer", flexShrink: 0 }}>
+        <div onClick={() => setPage(PAGES.session)} className="nav-logo-wrap" style={{ cursor: "pointer", flexShrink: 0 }}>
           <BrandLogo height={224} />
         </div>
         <div style={{ display: "flex", gap: 36, alignItems: "center" }} className="desktop-nav">
@@ -385,17 +467,18 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
           ))}
           <button onClick={() => onBook()} style={{ background: "var(--terracotta)", color: "var(--bone)", border: "none", padding: "11px 28px", borderRadius: 6, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 500, letterSpacing: "0.02em", transition: "background 0.25s" }} onMouseEnter={e => e.target.style.background = "var(--terracotta-hover)"} onMouseLeave={e => e.target.style.background = "var(--terracotta)"}>Book Now</button>
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)} className="mobile-menu-btn" style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: 8 }}>
-          <div style={{ width: 22, height: 2, background: "var(--bone)", marginBottom: 5, borderRadius: 1 }} />
-          <div style={{ width: 22, height: 2, background: "var(--bone)", marginBottom: 5, borderRadius: 1 }} />
-          <div style={{ width: 16, height: 2, background: "var(--bone)", borderRadius: 1 }} />
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="mobile-menu-btn" style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "10px 8px", flexDirection: "column", gap: 5, alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 24, height: 2, background: "var(--bone)", borderRadius: 1, transition: "all 0.25s", transform: mobileOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }} />
+          <div style={{ width: 24, height: 2, background: "var(--bone)", borderRadius: 1, transition: "all 0.25s", opacity: mobileOpen ? 0 : 1 }} />
+          <div style={{ width: 24, height: 2, background: "var(--bone)", borderRadius: 1, transition: "all 0.25s", transform: mobileOpen ? "rotate(-45deg) translate(5px, -5px)" : "none" }} />
         </button>
       </div>
       {mobileOpen && (
-        <div style={{ background: "#1A1816", borderTop: "1px solid rgba(240,236,230,0.08)", padding: "16px 28px" }}>
+        <div style={{ background: "#1A1816", borderTop: "1px solid rgba(240,236,230,0.08)", padding: "12px 24px 20px" }}>
           {navItems.map(item => (
-            <button key={item.label} onClick={() => handleNav(item)} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 16, padding: "14px 0", color: isActive(item) ? "var(--terracotta)" : "rgba(240,236,230,0.8)", borderBottom: "1px solid rgba(240,236,230,0.08)" }}>{item.label}</button>
+            <button key={item.label} onClick={() => handleNav(item)} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 17, padding: "15px 0", color: isActive(item) ? "var(--terracotta)" : "rgba(240,236,230,0.85)", borderBottom: "1px solid rgba(240,236,230,0.07)", letterSpacing: "0.01em" }}>{item.label}</button>
           ))}
+          <button onClick={() => { setMobileOpen(false); onBook(); }} style={{ marginTop: 16, width: "100%", padding: "15px 0", background: "var(--terracotta)", color: "var(--bone)", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 16, fontWeight: 600, letterSpacing: "0.04em" }}>Book Now</button>
         </div>
       )}
     </nav>
@@ -407,7 +490,7 @@ function TrustBar() {
   return (
     <div style={{ background: "var(--bone-dark)", borderTop: "1px solid var(--sand)", borderBottom: "1px solid var(--sand)" }}>
       <Container>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px 40px", padding: "22px 0" }}>
+        <div className="trust-bar-inner" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px 40px", padding: "22px 0" }}>
           {TRUST_SIGNALS.map((s, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "var(--text-secondary)", fontWeight: 400, whiteSpace: "nowrap" }}>
               <span style={{ color: "var(--deep-clay)", fontSize: 10 }}>{s.icon}</span>{s.text}
@@ -446,7 +529,7 @@ function BenefitCard({ benefit }) {
     <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ background: "var(--white)", border: "1px solid var(--sand)", borderRadius: 10, padding: "22px 28px", transition: "box-shadow 0.35s, transform 0.35s", boxShadow: h ? "0 10px 36px rgba(156,94,60,0.08)" : "none", transform: h ? "translateY(-3px)" : "none" }}>
       <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: "0.14em", color: "var(--terracotta)", marginBottom: 10 }}>{benefit.tag}</div>
       <h3 style={{ fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 400, lineHeight: 1.25, marginBottom: 10, color: "var(--forest-ink)" }}>{benefit.headline}</h3>
-      <p style={{ fontSize: 13.5, lineHeight: 1.65, color: "var(--text-secondary)" }}>{benefit.body}</p>
+      <p style={{ fontSize: 17, lineHeight: 1.65, color: "var(--text-secondary)" }}>{benefit.body}</p>
     </div>
   );
 }
@@ -494,8 +577,8 @@ function HowItWorksSection() {
       </div>
       <div style={{ marginTop: 40 }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 24, marginBottom: 18, fontWeight: 400 }}>How assisted stretching is different</h2>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, background: "var(--bone)", borderRadius: 10, overflow: "hidden" }}>
+        <div className="comparison-table-wrap" style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, background: "var(--bone)", borderRadius: 10, overflow: "hidden", minWidth: 480 }}>
             <thead>
               <tr style={{ borderBottom: "2px solid var(--sand)" }}>
                 {["", "Solo stretching", "Massage", "Assisted stretching"].map((h, i) => (
@@ -533,7 +616,7 @@ function FAQSection() {
               <span style={{ fontSize: 22, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, marginLeft: 20, fontWeight: 300 }}>+</span>
             </button>
             <div style={{ maxHeight: openIdx === i ? 220 : 0, overflow: "hidden", transition: "max-height 0.4s ease" }}>
-              <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", paddingBottom: 22 }}>{faq.a}</p>
+              <p style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-secondary)", paddingBottom: 22 }}>{faq.a}</p>
             </div>
           </div>
         ))}
@@ -551,7 +634,7 @@ function ReviewsSection({ reviews = REVIEWS, title, sub }) {
         {reviews.map((r, i) => (
           <div key={i} style={{ background: "var(--bone)", borderRadius: 10, padding: 24, border: "1px solid var(--bone-dark)" }}>
             <div style={{ color: "var(--terracotta)", fontSize: 14, marginBottom: 12, letterSpacing: 3 }}>{"★".repeat(r.stars)}</div>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: "var(--forest-ink)", fontFamily: "var(--font-display)", fontStyle: "italic", marginBottom: 14, fontWeight: 400 }}>"{r.text}"</p>
+            <p style={{ fontSize: 19, lineHeight: 1.7, color: "var(--forest-ink)", fontFamily: "var(--font-display)", fontStyle: "italic", marginBottom: 14, fontWeight: 400 }}>"{r.text}"</p>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest-ink)" }}>{r.name}</div>
               <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>{r.label}</div>
@@ -610,7 +693,7 @@ function ObjectionHandlers() {
               <span style={{ fontSize: 22, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, marginLeft: 20, fontWeight: 300 }}>+</span>
             </button>
             <div style={{ maxHeight: openIdx === i ? 220 : 0, overflow: "hidden", transition: "max-height 0.4s ease" }}>
-              <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", paddingBottom: 22 }}>{item.a}</p>
+              <p style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-secondary)", paddingBottom: 22 }}>{item.a}</p>
             </div>
           </div>
         ))}
@@ -621,9 +704,7 @@ function ObjectionHandlers() {
 
 function PricingLadder({ setPage, highlight, onBook }) {
   const plans = [
-    { name: "Single Session", price: "$125", per: "$125", save: "—", validity: "Use anytime", includes: "1 × 60-min session", best: "Trying it out", page: PAGES.session },
-    { name: "5-Pack", price: "$575", per: "$115", save: "$50", validity: "6 months", includes: "5 × 60-min sessions", best: "Building a habit", page: PAGES.fivePack, recommended: true },
-    { name: "10-Pack", price: "$1,000", per: "$100", save: "$250", validity: "12 months", includes: "10 × 60-min sessions", best: "Athletes & regulars", page: PAGES.tenPack },
+    { name: "Single Session", price: "$125", per: "$125", save: "—", validity: "Use anytime", includes: "1 × 60-min session", best: "Trying it out", page: PAGES.session, recommended: true },
   ];
   return (
     <Section>
@@ -659,13 +740,16 @@ function Footer({ onGiftBook, setPage }) {
       <Container>
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 44, marginBottom: 24 }} className="footer-grid">
           <div>
-            <div style={{ marginBottom: 4, marginTop: -24, marginLeft: -20 }}>
+            <div className="footer-logo-wrap" style={{ marginBottom: 4, marginTop: -24, marginLeft: -20 }}>
               <BrandLogo height={208} light />
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", marginBottom: 18, opacity: 0.4 }}>SESSIONS</div>
-            <div style={{ fontSize: 13.5, lineHeight: 2.6, opacity: 0.6 }}><div>Single Session</div><div>5-Pack</div><div>10-Pack</div></div>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", marginBottom: 18, opacity: 0.4 }}>STUDIO</div>
+            <div style={{ fontSize: 13.5, lineHeight: 2, opacity: 0.6 }}>
+              <div>41 Barton Parade</div>
+              <div>Balmoral. Brisbane 4171</div>
+            </div>
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", marginBottom: 18, opacity: 0.4 }}>CONNECT</div>
@@ -686,19 +770,64 @@ function HomePage({ onBook, onGiftBook }) {
   usePageMeta({
     title: "Assisted Stretches — Brisbane's Dedicated Stretching Studio",
     description: "One-on-one assisted stretching in Brisbane. 60-minute PNF sessions for flexibility, recovery and pain relief. 4.9★ across 180+ reviews. Book from $125.",
+    path: "",
   });
-  useJsonLd({
-    "@context": "https://schema.org",
-    "@type": "HealthAndBeautyBusiness",
-    "name": "Assisted Stretches",
-    "description": "Brisbane's dedicated assisted stretching studio offering one-on-one 60-minute PNF stretching sessions for flexibility, recovery, and nervous system regulation.",
-    "url": "https://www.assistedstretches.com",
-    "email": "hello@assistedstretches.com",
-    "address": { "@type": "PostalAddress", "addressLocality": "Brisbane", "addressRegion": "QLD", "addressCountry": "AU" },
-    "priceRange": "$125–$1,000",
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "180", "bestRating": "5" },
-    "sameAs": ["https://www.instagram.com/assistedstretches", "https://www.facebook.com/assistedstretches"],
-  });
+  useJsonLd([
+    {
+      "@type": ["HealthAndBeautyBusiness", "LocalBusiness"],
+      "@id": "https://www.assistedstretches.com/#business",
+      "name": "Assisted Stretches",
+      "description": "Brisbane's dedicated one-on-one assisted stretching studio. 60-minute PNF stretching sessions for flexibility, recovery, and nervous system regulation. Not massage, not physio — a dedicated stretching practice.",
+      "url": "https://www.assistedstretches.com",
+      "email": "hello@assistedstretches.com",
+      "image": "https://www.assistedstretches.com/session-hero.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "41 Barton Parade",
+        "addressLocality": "Balmoral",
+        "addressRegion": "QLD",
+        "postalCode": "4171",
+        "addressCountry": "AU"
+      },
+      "geo": { "@type": "GeoCoordinates", "latitude": -27.4694, "longitude": 153.0570 },
+      "hasMap": "https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171",
+      "openingHoursSpecification": [
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Friday", "opens": "16:00", "closes": "18:00" },
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Saturday", "opens": "08:00", "closes": "16:00" },
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Sunday", "opens": "09:00", "closes": "12:00" }
+      ],
+      "priceRange": "$125–$1,000",
+      "currenciesAccepted": "AUD",
+      "paymentAccepted": "Credit Card, EFTPOS, HICAPS",
+      "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "180", "bestRating": "5", "worstRating": "1" },
+      "review": [
+        { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Sarah K." }, "reviewBody": "I've had massage every fortnight for ten years and never felt the kind of release I got in 60 minutes here. Walked out two inches taller." },
+        { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Marcus T." }, "reviewBody": "My hips have been a wreck since I started lifting heavy. Three sessions in and my squat depth is back." },
+        { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Anna L." }, "reviewBody": "Went in skeptical, came out a convert. The take-home stretches alone are worth the price." }
+      ],
+      "areaServed": [
+        { "@type": "City", "name": "Brisbane" },
+        { "@type": "Place", "name": "Balmoral QLD 4171" },
+        { "@type": "Place", "name": "Hawthorne QLD 4171" },
+        { "@type": "Place", "name": "Norman Park QLD 4170" },
+        { "@type": "Place", "name": "Bulimba QLD 4171" },
+        { "@type": "Place", "name": "East Brisbane QLD 4169" },
+        { "@type": "Place", "name": "Morningside QLD 4170" },
+        { "@type": "Place", "name": "Camp Hill QLD 4152" }
+      ],
+      "serviceType": "Assisted Stretching",
+      "keywords": "assisted stretching Brisbane, PNF stretching Brisbane, one-on-one stretching, flexibility studio Brisbane, stretch studio Balmoral, hamstring stretching, hip flexor release, back pain stretching Brisbane, recovery stretching, sports stretching Brisbane",
+      "sameAs": ["https://www.instagram.com/assistedstretches", "https://www.facebook.com/assistedstretches"]
+    },
+    {
+      "@type": "Service",
+      "name": "Assisted Stretch Session — 60 Minutes",
+      "description": "A one-on-one 60-minute assisted stretch session targeting hamstrings, hips, shoulders, and lower back using PNF technique. Includes postural assessment and take-home stretches.",
+      "provider": { "@id": "https://www.assistedstretches.com/#business" },
+      "areaServed": { "@type": "City", "name": "Brisbane" },
+      "offers": { "@type": "Offer", "price": "125", "priceCurrency": "AUD", "availability": "https://schema.org/InStock", "url": "https://www.assistedstretches.com/#/session" }
+    }
+  ]);
   return (
     <>
       {/* Session pricing hero — top of page */}
@@ -711,24 +840,20 @@ function HomePage({ onBook, onGiftBook }) {
             <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0, color: "var(--forest-ink)" }}>
               Stretch deeper than you can on your own.
             </h1>
-            <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
-              A guided 60-minute assisted stretch session using PNF technique that goes where solo stretching cannot — hamstrings, hips, shoulders, lower back. You lie down. We do the work.
+            <p className="fade-up delay-2" style={{ fontFamily: "var(--font-display)", fontSize: 21, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
+              A guided 60-minute assisted stretch session using PNF technique that goes where solo stretching cannot — hamstrings, hips, shoulders, lower back.
             </p>
             <div className="fade-up delay-3" style={{ fontSize: 14.5, color: "var(--text-secondary)", marginBottom: 20, opacity: 0 }}>
               <span style={{ fontFamily: "var(--font-display)", fontSize: 30, color: "var(--forest-ink)", fontWeight: 400 }}>$125</span>
             </div>
             <div className="fade-up delay-4" style={{ display: "flex", flexDirection: "column", gap: 12, opacity: 0 }}>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <PrimaryButton large onClick={() => onBook(PRODUCTS[0])}>Book a session — $125</PrimaryButton>
-              </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button onClick={() => onBook(PRODUCTS[1])} style={{ background: "none", border: "1.5px solid var(--sand)", borderRadius: 6, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 400, color: "var(--text-secondary)", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--deep-clay)"; e.currentTarget.style.color = "var(--forest-ink)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--sand)"; e.currentTarget.style.color = "var(--text-secondary)"; }}>5-pack — $115/session</button>
-                <button onClick={() => onBook(PRODUCTS[2])} style={{ background: "none", border: "1.5px solid var(--sand)", borderRadius: 6, padding: "10px 20px", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 400, color: "var(--text-secondary)", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--deep-clay)"; e.currentTarget.style.color = "var(--forest-ink)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--sand)"; e.currentTarget.style.color = "var(--text-secondary)"; }}>10-pack — $100/session</button>
+                <PrimaryButton large onClick={() => onBook(PRODUCTS[0])}>Book a session</PrimaryButton>
               </div>
             </div>
           </div>
           <div className="fade-in delay-3" style={{ opacity: 0 }}>
-            <div style={{ borderRadius: 14, height: 480, overflow: "hidden" }}>
+            <div style={{ borderRadius: 14, height: "clamp(260px, 50vw, 480px)", overflow: "hidden" }}>
               <img src="/session-hero.jpg" alt="Practitioner guiding a stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)", transform: "scale(1.5) translateY(-22%)", transformOrigin: "center center" }} />
             </div>
           </div>
@@ -739,13 +864,13 @@ function HomePage({ onBook, onGiftBook }) {
       <Section dark>
         <div style={{ maxWidth: 720 }}>
           <SectionTitle>Not massage. Not physio. Not yoga.</SectionTitle>
-          <p style={{ fontSize: 16, lineHeight: 1.8, opacity: 0.82, marginTop: 24 }}>
+          <p style={{ fontSize: 20, lineHeight: 1.8, opacity: 0.82, marginTop: 24 }}>
             Massage therapists work tissue with pressure. Physiotherapists rehabilitate injury. Yoga instructors teach you to move your own body.
           </p>
-          <p style={{ fontSize: 16, lineHeight: 1.8, opacity: 0.82, marginTop: 16 }}>
+          <p style={{ fontSize: 20, lineHeight: 1.8, opacity: 0.82, marginTop: 16 }}>
             Assisted Stretches does something none of them do: a trained practitioner moves your body through targeted, PNF-guided stretches you physically cannot perform alone. It's not recovery-adjacent. It's not movement-adjacent.
           </p>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 400, fontStyle: "italic", opacity: 0.95, marginTop: 28, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(15px, 1.875vw, 19.5px)", fontWeight: 400, fontStyle: "italic", opacity: 0.95, marginTop: 28, lineHeight: 1.5 }}>
             It's the missing category — a dedicated practice for restoring range, releasing deep tension, and giving your nervous system permission to let go.
           </p>
         </div>
@@ -760,12 +885,13 @@ function BenefitsPage({ onBook }) {
   usePageMeta({
     title: "Benefits of Assisted Stretching | Assisted Stretches Brisbane",
     description: "Discover what 60 minutes of assisted stretching can do — improved range, faster recovery, and nervous system release. Brisbane's dedicated stretching studio.",
+    path: "benefits",
   });
   return (
     <>
       <BenefitsSection />
       <Section style={{ background: "var(--white)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        <div className="benefits-4col" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
           {[
             { icon: "◈", title: "Measurable range gains", body: "We test before and after every session. Most clients see improvement in hip, hamstring or shoulder range within the first hour." },
             { icon: "◉", title: "Faster recovery between sessions", body: "Assisted stretching after training helps clear lactic build-up and reduce next-day stiffness. Pair it with your weekly long run, lift, or ride." },
@@ -775,7 +901,7 @@ function BenefitsPage({ onBook }) {
             <div key={i} style={{ background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 12, padding: "28px 24px" }}>
               <div style={{ fontSize: 18, color: "var(--deep-clay)", marginBottom: 12 }}>{item.icon}</div>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 400, marginBottom: 10 }}>{item.title}</div>
-              <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-secondary)" }}>{item.body}</p>
+              <p style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-secondary)" }}>{item.body}</p>
             </div>
           ))}
         </div>
@@ -789,31 +915,28 @@ function AboutPage({ onBook }) {
   usePageMeta({
     title: "About Assisted Stretches | Brisbane's Dedicated Stretching Studio",
     description: "Founded on a simple observation — most people are tighter than they need to be. Meet the practitioner behind Assisted Stretches Brisbane.",
+    path: "about",
   });
   return (
     <>
-      <section style={{ background: "var(--white)", height: "calc(100vh - 48px)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 28px 0", height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }} className="hero-grid">
+      <section className="about-hero-section" style={{ background: "var(--white)", height: "calc(100vh - 48px)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "20px 28px 0", height: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }} className="hero-grid container-inner">
           <div>
             <SectionLabel text="About Assisted Stretches" />
             <h1 className="fade-up" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 3.2vw, 38px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", color: "var(--forest-ink)", marginBottom: 14, opacity: 0 }}>
               Founded on a simple observation.
             </h1>
-            <p className="fade-up delay-1" style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 10, opacity: 0 }}>
-              Most people are tighter than they need to be, and nothing they're doing on their own is fixing it. Foam rollers don't reach deep enough. Massage feels good but doesn't change range or restore movement patterns.
-            </p>
-            <p className="fade-up delay-2" style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 10, opacity: 0 }}>
-              What works is someone trained taking your body through stretches you can't execute on yourself — using contract-relax cycles, precise positioning, and decades of combined technique. That's what we do, right here in Brisbane. Nothing else.
-            </p>
-            <p className="fade-up delay-2" style={{ fontSize: 14.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 24, opacity: 0 }}>
-              We built Assisted Stretches for people who want results they can feel in their hips the next morning, their shoulders in their next workout, and their posture within weeks. Real, consistent progress. One practitioner, one body at a time.
+            <p className="fade-up delay-1" style={{ fontSize: 21, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 10, opacity: 0 }}>
+              Most people are tighter than they need to be, and nothing they're doing on their own is fixing it. Foam rollers don't reach deep enough. Massage feels good but doesn't change range or restore movement patterns. What works is someone trained taking your body through stretches you can't execute on yourself — using contract-relax cycles, precise positioning, and decades of combined technique.            </p>
+            <p className="fade-up delay-2" style={{ fontSize: 21, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 24, opacity: 0 }}>
+              We built Assisted Stretches for people who want results they can feel in their hips the next morning, their shoulders in their next workout, and their posture within weeks.
             </p>
             <div style={{ borderTop: "1px solid var(--bone-dark)", paddingTop: 20 }}>
               <SectionLabel text="Your practitioner" />
-              <p style={{ fontFamily: "var(--font-display)", fontSize: 17, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", marginBottom: 10 }}>
+              <p style={{ fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", marginBottom: 10 }}>
                 Flexibility is the foundation of movement, yet it's one of the most overlooked areas in the health and fitness industry.
               </p>
-              <p style={{ fontSize: 13.5, lineHeight: 1.65, color: "var(--text-secondary)" }}>
+              <p style={{ fontFamily: "var(--font-display)", fontSize: 21, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)" }}>
                 I am a Certified Stretch Practitioner working hands-on with clients who want to integrate evidence-based assisted stretching techniques into their health and wellness routine.
               </p>
             </div>
@@ -822,9 +945,10 @@ function AboutPage({ onBook }) {
             <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
-            <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
+            <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden", marginTop: 80 }}>
               <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
+            <div style={{ textAlign: "center", marginTop: 12, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
           </div>
         </div>
       </section>
@@ -836,6 +960,7 @@ function ContactPage() {
   usePageMeta({
     title: "Contact Assisted Stretches Brisbane",
     description: "Get in touch with Assisted Stretches Brisbane. We'll respond within one business day.",
+    path: "contact",
   });
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [status, setStatus] = useState("idle");
@@ -853,14 +978,18 @@ function ContactPage() {
   const labelStyle = { display: "block", fontSize: 12, fontWeight: 500, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 6 };
   return (
     <Section style={{ paddingTop: 48 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "start" }} className="hero-grid">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "start" }} className="hero-grid contact-grid">
         {/* Left — info */}
         <div>
           <SectionLabel text="Get in touch" />
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, lineHeight: 1.06, color: "var(--forest-ink)", marginBottom: 16 }}>Send us an enquiry.</h1>
-          <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 32 }}>We'll respond within one business day.</p>
+          <p style={{ fontSize: 19.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 32 }}>We'll respond within one business day.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {[{ icon: "✉", label: "Email", value: "hello@assistedstretches.com" }, { icon: "◎", label: "Location", value: "Brisbane, QLD" }, { icon: "◆", label: "Response time", value: "Within one business day" }].map((item, i) => (
+            {[
+              { icon: "✉", label: "Email", value: "hello@assistedstretches.com" },
+              { icon: "◎", label: "Location", value: "41 Barton Parade, Balmoral QLD 4171" },
+              { icon: "◆", label: "Response time", value: "Within one business day" },
+            ].map((item, i) => (
               <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                 <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>{item.icon}</span>
                 <div>
@@ -869,6 +998,26 @@ function ContactPage() {
                 </div>
               </div>
             ))}
+
+            {/* Opening hours */}
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>◷</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 8 }}>STUDIO OPENING HOURS</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {[
+                    { day: "Friday", hours: "4:00 pm – 6:00 pm" },
+                    { day: "Saturday", hours: "8:00 am – 4:00 pm" },
+                    { day: "Sunday", hours: "9:00 am – 12:00 pm" },
+                  ].map(({ day, hours }) => (
+                    <div key={day} style={{ display: "flex", gap: 12, fontSize: 15, color: "var(--forest-ink)" }}>
+                      <span style={{ minWidth: 72, color: "var(--text-secondary)", fontSize: 14 }}>{day}</span>
+                      <span>{hours}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         {/* Right — form */}
@@ -901,6 +1050,7 @@ function SessionPage({ setPage, onBook, onGiftBook }) {
   usePageMeta({
     title: "Book a 60-Minute Assisted Stretch Session — $125 | Assisted Stretches Brisbane",
     description: "A guided 60-minute assisted stretch session targeting hamstrings, hips, shoulders & lower back using PNF technique. $125. First-session money-back guarantee. Brisbane studio.",
+    path: "session",
   });
   useJsonLd({
     "@context": "https://schema.org",
@@ -927,6 +1077,7 @@ function FivePackPage({ setPage, onBook }) {
   usePageMeta({
     title: "5-Session Assisted Stretching Pack — $575 ($115/session) | Assisted Stretches Brisbane",
     description: "Five 60-minute assisted stretch sessions at $115 each. Save $50 vs single sessions. Valid 6 months. Health fund rebates available. Brisbane studio.",
+    path: "5-pack",
   });
   useJsonLd({
     "@context": "https://schema.org",
@@ -963,6 +1114,7 @@ function TenPackPage({ setPage, onBook }) {
   usePageMeta({
     title: "10-Session Assisted Stretching Pack — $1,000 ($100/session) | Assisted Stretches Brisbane",
     description: "Ten 60-minute assisted stretch sessions at $100 each. Save $250 vs single sessions. Our best per-session rate. Valid 12 months. Brisbane studio.",
+    path: "10-pack",
   });
   useJsonLd({
     "@context": "https://schema.org",
@@ -1006,21 +1158,20 @@ function TenPackPage({ setPage, onBook }) {
 function GiftCardsPage({ setPage, onBook, onGiftBook }) {
   usePageMeta({
     title: "Assisted Stretching Gift Cards — From $125 | Assisted Stretches Brisbane",
-    description: "Give assisted stretching. Gift cards for 1, 5, or 10 sessions from $125. Digital delivery, instant. Valid 12 months. The gift that keeps giving.",
+    description: "Give assisted stretching. Gift cards for 1 session from $125. Digital delivery, instant. Valid 6 months. The gift that keeps giving.",
+    path: "gift-cards",
   });
   useJsonLd({
     "@context": "https://schema.org",
     "@type": "Service",
     "name": "Assisted Stretching Gift Cards",
-    "description": "Digital gift cards for one-on-one assisted stretching sessions in Brisbane. Available in 1, 5, or 10 session denominations. Valid 12 months.",
+    "description": "Digital gift cards for one-on-one assisted stretching sessions in Brisbane. Available as a single session. Valid 6 months.",
     "provider": { "@type": "HealthAndBeautyBusiness", "name": "Assisted Stretches", "address": { "@type": "PostalAddress", "addressLocality": "Brisbane", "addressRegion": "QLD", "addressCountry": "AU" } },
     "offers": { "@type": "AggregateOffer", "lowPrice": "125", "highPrice": "1000", "priceCurrency": "AUD" },
   });
-  const [sel, setSel] = useState(1);
+  const [sel, setSel] = useState(0);
   const denoms = [
     { sessions: 1, price: "$125", saving: "—", tagline: "One hour where the world stops.", desc: "A single 60-minute session. The right gift when you're not sure if they'll like it. They will." },
-    { sessions: 5, price: "$575", saving: "$50", tagline: "A real reset.", desc: "Five 60-minute sessions. For someone who needs more than a one-off." },
-    { sessions: 10, price: "$1,000", saving: "$250", tagline: "For the person that is committed to taking assisted stretching seriously.", desc: "Ten 60-minute sessions for someone that wants to integrate Assisted Stretching into their health and wellness routine." },
   ];
   return (
     <>
@@ -1029,13 +1180,13 @@ function GiftCardsPage({ setPage, onBook, onGiftBook }) {
           <div>
             <div className="fade-up" style={{ opacity: 0 }}><div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>GIFT CARDS · DIGITAL DELIVERY · INSTANT</div></div>
             <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0 }}>Give the feeling of a body that finally lets go.</h1>
-            <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>A gift card for one, five or ten 60-minute assisted stretch sessions. Delivered the moment you buy it, redeemable for twelve months.</p>
+            <p className="fade-up delay-2" style={{ fontSize: 19.5, lineHeight: 1.7, color: "var(--text-secondary)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>A gift card for a 60-minute assisted stretch session. Delivered the moment you buy it, redeemable for six months.</p>
             <div className="fade-up delay-3" style={{ marginBottom: 20, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--forest-ink)", fontWeight: 400 }}>From $125</span><div style={{ fontSize: 13.5, color: "var(--text-secondary)", marginTop: 6 }}>Includes a personal message</div></div>
             <div className="fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onGiftBook()}>Choose a gift card</PrimaryButton></div>
           </div>
           <div className="fade-in delay-3" style={{ opacity: 0, height: "calc(100% - 20px)" }}>
             <div style={{ height: "100%", display: "flex", alignItems: "center" }}>
-              <GiftCardVisual sessions={[1, 5, 10][sel]} />
+              <GiftCardVisual sessions={1} />
             </div>
           </div>
         </div>
@@ -1092,35 +1243,40 @@ function GiftCardsPage({ setPage, onBook, onGiftBook }) {
   );
 }
 
-// ─── BOOKING PAGE ────────────────────────────────────────────
-function BookingPage({ setPage }) {
-  usePageMeta({
-    title: "Book a Session | Assisted Stretches Brisbane",
-    description: "Book a 60-minute assisted stretch session in Brisbane. Choose single session, 5-pack or 10-pack. Select your date, time and pay securely online.",
-  });
-  return (
-    <Section style={{ paddingTop: 24, paddingBottom: 32 }}>
-      <BookingModal mode="page" isOpen={true} onClose={() => setPage(PAGES.home)} />
-    </Section>
-  );
-}
-
 // ─── STICKY CTA ──────────────────────────────────────────────
 function StickyCTA({ page, onBook }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = document.querySelector('.app-scroll-container');
     if (!el) return;
-    const handler = () => setVisible(el.scrollTop > 500);
+    const handler = () => setVisible(el.scrollTop > 300);
     el.addEventListener('scroll', handler);
     return () => el.removeEventListener('scroll', handler);
   }, []);
-  const labels = { [PAGES.session]: "Book a session — $125", [PAGES.fivePack]: "Buy 5-pack — $575", [PAGES.tenPack]: "Buy 10-pack — $1,000", [PAGES.faq]: "Book a session — $125" };
-  if (!labels[page]) return null;
+
+  // Desktop: only show on specific product pages
+  const desktopLabels = { [PAGES.session]: "Book a session", [PAGES.fivePack]: "Buy 5-pack — $575", [PAGES.tenPack]: "Buy 10-pack — $1,000", [PAGES.faq]: "Book a session" };
+  const desktopLabel = desktopLabels[page];
+  const productIdx = page === PAGES.fivePack ? 1 : page === PAGES.tenPack ? 2 : 0;
+
   return (
-    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(242,237,228,0.96)", backdropFilter: "blur(12px)", borderTop: "1px solid var(--sand)", padding: "14px 28px", display: "flex", justifyContent: "center", zIndex: 99, transform: visible ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s ease" }}>
-      <PrimaryButton onClick={() => onBook(PRODUCTS[page === PAGES.fivePack ? 1 : page === PAGES.tenPack ? 2 : 0])}>{labels[page]}</PrimaryButton>
-    </div>
+    <>
+      {/* Desktop sticky CTA — specific pages only */}
+      {desktopLabel && (
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(242,237,228,0.96)", backdropFilter: "blur(12px)", borderTop: "1px solid var(--sand)", padding: "14px 28px", display: "flex", justifyContent: "center", zIndex: 99, transform: visible ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s ease" }} className="desktop-sticky-cta">
+          <PrimaryButton onClick={() => onBook(PRODUCTS[productIdx])}>{desktopLabel}</PrimaryButton>
+        </div>
+      )}
+      {/* Mobile sticky Book Now — all pages, shows after scroll */}
+      <button
+        className="mobile-sticky-book"
+        onClick={() => onBook(PRODUCTS[productIdx])}
+        style={{ transform: visible ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s ease" }}
+      >
+        Book a Session — $125
+        <span style={{ fontSize: 18, opacity: 0.85 }}>→</span>
+      </button>
+    </>
   );
 }
 
@@ -1145,7 +1301,7 @@ function FaqChat() {
 
   const addMessages = (msgs) => setMessages(prev => [...prev, ...msgs]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const val = input.trim();
     if (!val || done || sending) return;
     setInput("");
@@ -1161,19 +1317,30 @@ function FaqChat() {
       setStep(s => s + 1);
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
-      // Final step — fire mailto
+      // Final step — send via Resend
       setSending(true);
       addMessages([userMsg]);
-      setTimeout(() => {
-        addMessages([{ from: "bot", text: `Thanks, ${newData.name}! I'm opening your email now — just hit send and we'll get back to you within one business day.` }]);
-        setDone(true);
-        setSending(false);
-        const subject = encodeURIComponent(`Question from ${newData.name}`);
-        const body = encodeURIComponent(
-          `Hi Assisted Stretches,\n\nI have a question:\n\n"${newData.question}"\n\nBest,\n${newData.name}\n${val}`
-        );
-        window.location.href = `mailto:hello@assistedstretches.com?subject=${subject}&body=${body}`;
-      }, 600);
+      try {
+        const res = await fetch("http://localhost:3001/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name:    newData.name,
+            email:   val,
+            message: `Question: ${newData.question}`,
+          }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          addMessages([{ from: "bot", text: `Thanks, ${newData.name}! Your question has been sent — we'll reply to ${val} within one business day.` }]);
+        } else {
+          addMessages([{ from: "bot", text: "Sorry, something went wrong sending your message. Please try the Contact page instead." }]);
+        }
+      } catch {
+        addMessages([{ from: "bot", text: "Sorry, something went wrong. Please try the Contact page instead." }]);
+      }
+      setDone(true);
+      setSending(false);
     }
   };
 
@@ -1241,7 +1408,7 @@ function FaqChat() {
         </div>
       ) : (
         <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 13, color: "var(--sand)", opacity: 0.6, textAlign: "center" }}>
-          Email client opened · hello@assistedstretches.com
+          Message sent · we'll be in touch soon
         </div>
       )}
     </div>
@@ -1300,7 +1467,7 @@ function ContactModal({ isOpen, onClose }) {
           <>
             <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>GET IN TOUCH</div>
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 400, color: "var(--forest-ink)", marginBottom: 8, lineHeight: 1.15 }}>Send us an enquiry.</h2>
-            <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 28 }}>We'll respond within one business day.</p>
+            <p style={{ fontSize: 17.5, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 28 }}>We'll respond within one business day.</p>
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <div>
                 <label style={labelStyle}>NAME *</label>
@@ -1335,6 +1502,7 @@ function FaqPage({ onBook }) {
   usePageMeta({
     title: "Assisted Stretching FAQ — What to Expect, Pricing & More | Assisted Stretches Brisbane",
     description: "Everything you need to know about assisted stretching — technique, frequency, cost, what to wear, and health fund cover. Answered by our Brisbane practitioners.",
+    path: "faq",
   });
   useJsonLd({
     "@context": "https://schema.org",
@@ -1348,47 +1516,69 @@ function FaqPage({ onBook }) {
   const [openIdx, setOpenIdx] = useState(null);
   return (
     <Section style={{ paddingTop: 40 }}>
-      <div style={{ maxWidth: 720 }}>
-        <div className="fade-up" style={{ opacity: 0 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>FREQUENTLY ASKED QUESTIONS</div>
-        </div>
-        <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
-          Everything you want to know.
-        </h1>
-        <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0, maxWidth: 560 }}>
-          Answers to the most common questions about assisted stretching — what it is, who it's for, and what to expect.
-        </p>
-        {DETAILED_FAQS.map((faq, i) => (
-          <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
-            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left", gap: 20 }}>
-              <span>{faq.q}</span>
-              <span style={{ fontSize: 24, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, fontWeight: 300, lineHeight: 1, marginTop: 2 }}>+</span>
-            </button>
-            <div style={{ maxHeight: openIdx === i ? 800 : 0, overflow: "hidden", transition: "max-height 0.5s ease" }}>
-              <div style={{ paddingBottom: 28 }}>
-                {faq.a.split("\n\n").map((para, j) => (
-                  <p key={j} style={{ fontSize: 15, lineHeight: 1.75, color: "var(--text-secondary)", marginBottom: j < faq.a.split("\n\n").length - 1 ? 16 : 0 }}>{para}</p>
-                ))}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 48, alignItems: "start", maxWidth: 1200 }}>
+        {/* Left — questions */}
+        <div>
+          <div className="fade-up" style={{ opacity: 0 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>FREQUENTLY ASKED QUESTIONS</div>
+          </div>
+          <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
+            Everything you want to know.
+          </h1>
+          <p className="fade-up delay-2" style={{ fontSize: 19.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0, maxWidth: 560 }}>
+            Answers to the most common questions about assisted stretching — what it is, who it's for, and what to expect.
+          </p>
+          {DETAILED_FAQS.map((faq, i) => (
+            <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
+              <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left", gap: 20 }}>
+                <span>{faq.q}</span>
+                <span style={{ fontSize: 24, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, fontWeight: 300, lineHeight: 1, marginTop: 2 }}>+</span>
+              </button>
+              <div style={{ maxHeight: openIdx === i ? 800 : 0, overflow: "hidden", transition: "max-height 0.5s ease" }}>
+                <div style={{ paddingBottom: 28 }}>
+                  {faq.a.split("\n\n").map((para, j) => (
+                    <p key={j} style={{ fontSize: 18.75, lineHeight: 1.75, color: "var(--text-secondary)", marginBottom: j < faq.a.split("\n\n").length - 1 ? 16 : 0 }}>{para}</p>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        <FaqChat />
+          ))}
+        </div>
+        {/* Right — chat box */}
+        <div style={{ position: "sticky", top: 24 }}>
+          <FaqChat />
+        </div>
       </div>
     </Section>
   );
 }
 
+// ─── HASH ROUTING ────────────────────────────────────────────
+function getPageFromHash() {
+  const hash = window.location.hash.replace(/^#\/?/, "");
+  return Object.values(PAGES).includes(hash) ? hash : PAGES.home;
+}
+
 // ─── APP ─────────────────────────────────────────────────────
 export default function App() {
-  const [page, setPage] = useState(PAGES.home);
+  const [page, setPage] = useState(getPageFromHash);
   const [bookingConfig, setBookingConfig] = useState(null);
   const [contactOpen, setContactOpen] = useState(false);
   const scrollRef = useRef(null);
+
   const changePage = (p) => {
     setPage(p);
+    window.location.hash = p === PAGES.home ? "" : `/${p}`;
     setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
   };
+
+  // Handle browser back / forward
+  useEffect(() => {
+    const onHash = () => setPage(getPageFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
   useEffect(() => {
     setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
   }, [page]);
@@ -1407,10 +1597,8 @@ export default function App() {
         {page === PAGES.session && <SessionPage setPage={changePage} onBook={openBooking} onGiftBook={openGiftCardBooking} />}
         {page === PAGES.fivePack && <FivePackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.tenPack && <TenPackPage setPage={changePage} onBook={openBooking} />}
-        {page === PAGES.giftCards && <GiftCardsPage setPage={changePage} onBook={openBooking} onGiftBook={openGiftCardBooking} />}
         {page === PAGES.faq && <FaqPage onBook={openBooking} />}
-        {page === PAGES.booking && <BookingPage setPage={changePage} />}
-        {page !== PAGES.booking && page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
+        {page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
         <StickyCTA page={page} onBook={openBooking} />
       </div>
       <BookingModal

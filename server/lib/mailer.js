@@ -4,7 +4,7 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM = 'Assisted Stretches <noreply@assistedstretches.com>';
+const FROM = 'Assisted Stretches <hello@assistedstretches.com>';
 
 async function sendGiftCardEmail({ recipientEmail, recipientName, purchaserName, code, productLabel, sessions, expiryDate, giftMessage }) {
   if (!resend) return;
@@ -44,9 +44,11 @@ async function sendGiftCardEmail({ recipientEmail, recipientName, purchaserName,
   }
 }
 
-async function sendBookingConfirmationEmail({ email, firstName, sessionDate, sessionTime, productLabel }) {
+async function sendBookingConfirmationEmail({ email, firstName, lastName, phone, sessionDate, sessionTime, productLabel, notes }) {
   if (!resend) return;
+  const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`;
   try {
+    // 1. Confirmation to client
     await resend.emails.send({
       from: FROM,
       to: email,
@@ -59,9 +61,40 @@ async function sendBookingConfirmationEmail({ email, firstName, sessionDate, ses
             <div><strong style="color:#2D3D35;">Date:</strong> ${sessionDate}</div>
             <div><strong style="color:#2D3D35;">Time:</strong> ${sessionTime}</div>
           </div>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin:0 0 20px;font-size:14px;line-height:2;color:#6B6054;">
+            <div><strong style="color:#2D3D35;">📍 Studio address:</strong> 41 Barton Parade, Balmoral QLD 4171</div>
+          </div>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin:0 0 20px;font-size:14px;line-height:1.75;color:#6B6054;">
+            <div style="margin-bottom:8px;"><strong style="color:#2D3D35;">🚗 Arrival instructions</strong></div>
+            <p style="margin:0 0 10px;">Street parking is available on Barton Parade.</p>
+            <p style="margin:0 0 10px;">Upon arrival, please make yourself comfortable on the sofa on the front porch until you are collected for your appointment. I am likely to be with a client before you.</p>
+            <p style="margin:0;">Many thanks</p>
+          </div>
           <p style="font-size:13px;color:#6B6054;line-height:1.7;">
             Please arrive 5 minutes early in comfortable clothing. To cancel or reschedule, contact us at least 24 hours before.
           </p>
+        </div>
+      `,
+    });
+
+    // 2. Notification to Coley
+    await resend.emails.send({
+      from: FROM,
+      to: 'hello@assistedstretches.com',
+      subject: `New booking — ${fullName} on ${sessionDate} at ${sessionTime}`,
+      html: `
+        <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;background:#F0ECE6;padding:40px 32px;border-radius:12px;">
+          <h1 style="color:#2D3D35;font-size:24px;font-weight:400;margin-bottom:8px;">New booking received</h1>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin:24px 0;font-size:14px;line-height:2.2;color:#6B6054;">
+            <div><strong style="color:#2D3D35;">Client:</strong> ${fullName}</div>
+            <div><strong style="color:#2D3D35;">Email:</strong> ${email}</div>
+            ${phone ? `<div><strong style="color:#2D3D35;">Phone:</strong> ${phone}</div>` : ''}
+            <div><strong style="color:#2D3D35;">Service:</strong> ${productLabel}</div>
+            <div><strong style="color:#2D3D35;">Date:</strong> ${sessionDate}</div>
+            <div><strong style="color:#2D3D35;">Time:</strong> ${sessionTime}</div>
+            ${notes ? `<div><strong style="color:#2D3D35;">Notes:</strong> ${notes}</div>` : ''}
+          </div>
+          <p style="font-size:12px;color:#9C9088;margin-top:8px;">View all bookings in your <a href="http://localhost:5173/admin" style="color:#C8856A;">admin portal</a>.</p>
         </div>
       `,
     });
