@@ -50,6 +50,16 @@ app.use('/api/admin/waivers',    adminAuth, require('./routes/admin/waivers'));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 
+// ── Apple Pay domain verification (Stripe) ────────────────────
+// Stripe writes the file content into the APPLE_PAY_DOMAIN_ASSOC env var
+// after you register your domain in the Stripe Dashboard.
+app.get('/.well-known/apple-developer-merchantid-domain-association', (_req, res) => {
+  const content = process.env.APPLE_PAY_DOMAIN_ASSOC;
+  if (!content) return res.status(404).send('Not configured');
+  res.setHeader('Content-Type', 'text/plain');
+  res.send(content);
+});
+
 // ── Serve built frontend in production ────────────────────────
 if (IS_PROD) {
   const distPath = path.join(__dirname, '../web/dist');
