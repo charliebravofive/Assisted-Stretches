@@ -84,7 +84,7 @@ const btn = (variant, extra = {}) => ({
 });
 
 // ─── STEP BARS ───────────────────────────────────────────────
-const STEP_LABELS = ["Service","Date","Time","Details","Payment"];
+const STEP_LABELS = ["Service","Date","Time","Details","Waiver","Payment"];
 
 function StepBar({ step, compact = false }) {
   const circleSize = compact ? 22 : 28;
@@ -915,6 +915,17 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
             stripe_payment_id: paymentIntent.id,
           }),
         });
+        // Submit waiver separately (non-fatal)
+        if (booking.waiver?.signature) {
+          fetch("/api/waivers", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              first_name: booking.contact.firstName, last_name: booking.contact.lastName,
+              email: booking.contact.email, phone: booking.contact.phone,
+              ...booking.waiver,
+            }),
+          }).catch(() => {});
+        }
       }
       onSuccess("stripe", giftCode);
     } catch (err) {
@@ -1197,12 +1208,13 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
       .catch(() => {}); // keep defaults on error
   }, []);
 
-  // Regular booking state (steps 0–4)
+  // Regular booking state (steps 0–5)
   const [step,       setStep]      = useState(0);
   const [product,    setProduct]   = useState(null);
   const [date,       setDate]      = useState(null);
   const [time,       setTime]      = useState(null);
   const [contact,    setContact]   = useState({});
+  const [waiver,     setWaiver]    = useState({});
   const [done,       setDone]      = useState(false);
   const [takenSlots, setTakenSlots] = useState([]);
 
@@ -1226,7 +1238,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     if (isOpen || mode === 'page') {
       setStep(initialProduct ? 1 : 0);
       setProduct(initialProduct || null);
-      setDate(null); setTime(null); setContact({}); setDone(false);
+      setDate(null); setTime(null); setContact({}); setWaiver({}); setDone(false);
       setGiftStep(0);
       setGiftProduct(PRODUCTS[0]); setGiftContact({}); setGiftDate(null); setGiftTime(null);
       setGiftDone(false); setGiftCode(null); setGiftSessions([]);
@@ -1271,13 +1283,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     !!date,
     !!time,
     !!(contact.firstName && contact.lastName && contact.email && contact.phone),
+    !!(waiver.agree_cancellation && waiver.agree_injuries_disclosed && waiver.agree_liability && waiver.signature),
     true,
   ][step] ?? false;
 
   const canNext = isGiftCardFlow ? giftCanNext : regCanNext;
 
   const giftBooking = { product: giftProduct, date: giftDate, time: giftTime, contact: giftContact, sessions: giftSessions };
-  const regBooking  = { product, date, time, contact };
+  const regBooking  = { product, date, time, contact, waiver };
 
   const handleGiftPaymentSuccess = (_method, code) => { setGiftCode(code); setGiftStep(2); };
   const handleRegPaymentSuccess  = async () => { setDone(true); };
@@ -1317,13 +1330,13 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const showNavBtns = !isDone && (
     isGiftCardFlow
       ? (giftStep === 0 || giftStep === 2)
-      : (step < 4)
+      : (step < 5)
   );
 
   const nextLabel =
     isGiftCardFlow
       ? (giftStep === 0 ? "Continue to payment →" : "Done ✓")
-      : (step === 3 ? "Continue to payment →" : "Continue →");
+      : (step === 4 ? "Continue to payment →" : "Continue →");
 
   // ── Page mode render ──────────────────────────────────────
   if (mode === 'page') {
@@ -1343,13 +1356,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
               {step === 1 && <DateStep value={date} onChange={d => { setDate(d); setTime(null); }} minDate={bookingMinDate} maxDate={bookingMaxDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
               {step === 2 && <TimeStep date={date} value={time} onChange={t => { setTime(t); setTimeout(() => setStep(3), 180); }} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
               {step === 3 && <ContactStep value={contact} onChange={setContact} isGiftCard={false} />}
-              {step === 4 && paymentNode}
+              {step === 4 && <WaiverStep value={waiver} onChange={setWaiver} />}
+              {step === 5 && paymentNode}
 
               {showNavBtns && step !== 2 && (
                 <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
                   {step > 0 && <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>}
                   <button onClick={() => canNext && handleNext()} style={{ ...btn("primary"), flex: step > 0 ? 2 : 1, cursor: canNext ? "pointer" : "not-allowed", opacity: canNext ? 1 : 0.45 }}>
-                    {step === 3 ? "Continue to payment →" : "Continue →"}
+                    {step === 4 ? "Continue to payment →" : "Continue →"}
                   </button>
                 </div>
               )}
@@ -1358,7 +1372,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
                   <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>
                 </div>
               )}
-              {step === 4 && (
+              {step === 5 && (
                 <button onClick={handleBack} style={{ ...btn("ghost"), width: "100%", marginTop: 10 }}>← Back</button>
               )}
             </>
@@ -1415,13 +1429,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
               {step === 1 && <DateStep value={date} onChange={d => { setDate(d); setTime(null); }} minDate={bookingMinDate} maxDate={bookingMaxDate} availableDays={liveAvailDays} holidays={liveHolidays} />}
               {step === 2 && <TimeStep date={date} value={time} onChange={t => { setTime(t); setTimeout(() => setStep(3), 180); }} takenSlots={takenSlots} slotsByDay={liveSlotsByDay} />}
               {step === 3 && <ContactStep value={contact} onChange={setContact} isGiftCard={false} />}
-              {step === 4 && paymentNode}
+              {step === 4 && <WaiverStep value={waiver} onChange={setWaiver} />}
+              {step === 5 && paymentNode}
 
               {showNavBtns && step !== 2 && (
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   {step > 0 && <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>}
                   <button onClick={handleNext} disabled={!canNext} style={{ ...btn("primary"), flex: step > 0 ? 2 : 1, opacity: canNext ? 1 : 0.45, cursor: canNext ? "pointer" : "default" }}>
-                    {step === 3 ? "Continue to payment →" : "Continue →"}
+                    {step === 4 ? "Continue to payment →" : "Continue →"}
                   </button>
                 </div>
               )}
@@ -1431,7 +1446,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
                   <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>
                 </div>
               )}
-              {step === 4 && (
+              {step === 5 && (
                 <button onClick={handleBack} style={{ ...btn("ghost"), width: "100%", marginTop: 12 }}>← Back</button>
               )}
             </>
