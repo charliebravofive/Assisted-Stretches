@@ -1175,8 +1175,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
         // Build products from server pricing
         const products = [
-          { id: 'session', label: 'Single Session', price: p.session || 125,   per: null,                                 desc: '1 × 60-min assisted stretch session', badge: null },
-          { id: '5-pack',  label: '5-Pack',          price: p['5-pack'] || 575, per: Math.round((p['5-pack'] || 575) / 5), desc: '5 × 60-min sessions · Valid 6 months', badge: 'Popular' },
+          { id: 'session', label: 'Single Session', price: p.session || 125, per: null, desc: '1 × 60-min assisted stretch session', badge: null },
         ];
         setLiveProducts(products);
 

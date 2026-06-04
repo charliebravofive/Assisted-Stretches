@@ -1133,7 +1133,7 @@ function TenPackPage({ setPage, onBook }) {
           <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 50px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0 }}>Ten sessions. The best per-session price we offer.</h1>
           <p className="fade-up delay-2" style={{ fontSize: 15.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 22, opacity: 0 }}>Ten 60-minute assisted stretch sessions, used at your pace over twelve months. For people who already know how this feels and want it as part of life.</p>
           <div className="fade-up delay-3" style={{ marginBottom: 20, opacity: 0 }}><span style={{ fontFamily: "var(--font-display)", fontSize: 32, color: "var(--forest-ink)", fontWeight: 400 }}>$1,000</span><span style={{ fontSize: 14.5, color: "var(--text-secondary)", marginLeft: 14 }}>$100 per session · Save $250</span></div>
-          <div className="fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onBook(PRODUCTS[2])}>Buy 10-pack — $1,000</PrimaryButton><SecondaryButton onClick={() => setPage(PAGES.fivePack)}>Compare with 5-pack</SecondaryButton></div>
+          <div className="fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap", opacity: 0 }}><PrimaryButton large onClick={() => onBook(PRODUCTS[1])}>Buy 10-pack — $1,000</PrimaryButton><SecondaryButton onClick={() => setPage(PAGES.session)}>Book a single session</SecondaryButton></div>
         </div>
       </Section>
       <Section style={{ background: "var(--white)" }}>
@@ -1255,9 +1255,9 @@ function StickyCTA({ page, onBook }) {
   }, []);
 
   // Desktop: only show on specific product pages
-  const desktopLabels = { [PAGES.session]: "Book a session", [PAGES.fivePack]: "Buy 5-pack — $575", [PAGES.tenPack]: "Buy 10-pack — $1,000", [PAGES.faq]: "Book a session" };
+  const desktopLabels = { [PAGES.session]: "Book a session", [PAGES.tenPack]: "Buy 10-pack — $1,000", [PAGES.faq]: "Book a session" };
   const desktopLabel = desktopLabels[page];
-  const productIdx = page === PAGES.fivePack ? 1 : page === PAGES.tenPack ? 2 : 0;
+  const productIdx = page === PAGES.tenPack ? 1 : 0;
 
   return (
     <>
@@ -1595,7 +1595,7 @@ export default function App() {
         {page === PAGES.about && <AboutPage onBook={openBooking} />}
         {page === PAGES.contact && <ContactPage />}
         {page === PAGES.session && <SessionPage setPage={changePage} onBook={openBooking} onGiftBook={openGiftCardBooking} />}
-        {page === PAGES.fivePack && <FivePackPage setPage={changePage} onBook={openBooking} />}
+        {page === PAGES.fivePack && <SessionPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.tenPack && <TenPackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.faq && <FaqPage onBook={openBooking} />}
         {page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
