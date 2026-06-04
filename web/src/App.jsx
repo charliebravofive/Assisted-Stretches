@@ -651,7 +651,7 @@ function PractitionerBio() {
     <Section id="about" style={{ background: "var(--white)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }} className="bio-grid">
         <div style={{ borderRadius: 14, height: 320, overflow: "hidden", background: "var(--white)" }}>
-          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
+          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", filter: "grayscale(100%) contrast(1.05)" }} />
         </div>
         <div>
           <SectionLabel text="Your practitioner" />
@@ -946,7 +946,7 @@ function AboutPage({ onBook }) {
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
             <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden", marginTop: 80 }}>
-              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
+              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
             <div style={{ textAlign: "center", marginTop: 12, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
           </div>
