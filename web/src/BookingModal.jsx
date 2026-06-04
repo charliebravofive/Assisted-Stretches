@@ -84,25 +84,26 @@ const btn = (variant, extra = {}) => ({
 });
 
 // ─── STEP BARS ───────────────────────────────────────────────
-const STEP_LABELS = ["Service","Date","Time","Details","Waiver","Payment"];
+const STEP_LABELS_NEW      = ["Service","Date","Time","Details","Waiver","Payment"];
+const STEP_LABELS_EXISTING = ["Service","Date","Time","Details","Payment"];
 
-function StepBar({ step, compact = false }) {
+function StepBar({ step, compact = false, labels = STEP_LABELS_NEW }) {
   const circleSize = compact ? 22 : 28;
   const fontSize   = compact ? 11 : 12;
   const labelSize  = compact ? 9  : 10;
   return (
     <div style={{ display: "flex", alignItems: "center", padding: compact ? "0" : "0 28px" }}>
-      {STEP_LABELS.map((label, i) => {
+      {labels.map((label, i) => {
         const done = i < step, cur = i === step;
         return (
-          <div key={i} style={{ display: "flex", alignItems: "center", flex: i < STEP_LABELS.length - 1 ? 1 : "none" }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", flex: i < labels.length - 1 ? 1 : "none" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
               <div style={{ width: circleSize, height: circleSize, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize, fontWeight: 600, background: done ? C.forest : cur ? C.terracotta : C.boneDark, color: done || cur ? C.bone : C.textSec, transition: "all 0.3s" }}>
                 {done ? "✓" : i + 1}
               </div>
               <span style={{ fontSize: labelSize, color: cur ? C.terracotta : done ? C.forest : C.textSec, fontWeight: cur ? 600 : 400, whiteSpace: "nowrap" }}>{label}</span>
             </div>
-            {i < STEP_LABELS.length - 1 && (
+            {i < labels.length - 1 && (
               <div style={{ flex: 1, height: 1.5, background: done ? C.forest : C.boneDark, margin: "0 4px", marginBottom: compact ? 14 : 18, transition: "background 0.3s" }} />
             )}
           </div>
@@ -1209,6 +1210,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   }, []);
 
   // Regular booking state (steps 0–5)
+  const [customerType, setCustomerType] = useState(null); // 'new' | 'existing' | null
   const [step,       setStep]      = useState(0);
   const [product,    setProduct]   = useState(null);
   const [date,       setDate]      = useState(null);
@@ -1236,6 +1238,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
   useEffect(() => {
     if (isOpen || mode === 'page') {
+      setCustomerType(null);
       setStep(initialProduct ? 1 : 0);
       setProduct(initialProduct || null);
       setDate(null); setTime(null); setContact({}); setWaiver({}); setDone(false);
@@ -1278,12 +1281,13 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     false;
 
   // ── Regular flow canNext
+  const isNewPatient = customerType === 'new';
   const regCanNext = [
     !!product,
     !!date,
     !!time,
     !!(contact.firstName && contact.lastName && contact.email && contact.phone),
-    !!(waiver.agree_cancellation && waiver.agree_injuries_disclosed && waiver.agree_liability && waiver.signature),
+    isNewPatient ? !!(waiver.agree_cancellation && waiver.agree_injuries_disclosed && waiver.agree_liability && waiver.signature) : true,
     true,
   ][step] ?? false;
 
@@ -1303,6 +1307,8 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
         setGiftStep(s => s + 1);
       }
     } else {
+      // Existing patients skip the waiver step (4) — jump straight to payment (5)
+      if (!isNewPatient && step === 3) { setStep(5); return; }
       setStep(s => s + 1);
     }
   };
@@ -1313,6 +1319,10 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     if (isGiftCardFlow) {
       if (giftStep > 0 && giftStep !== 1) setGiftStep(s => s - 1);
     } else {
+      // Existing patients at payment (5) go back to details (3), not waiver
+      if (!isNewPatient && step === 5) { setStep(3); return; }
+      // At step 0 (Service), go back to patient type selection
+      if (step === 0) { setCustomerType(null); return; }
       setStep(s => s - 1);
     }
   };
@@ -1336,20 +1346,22 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const nextLabel =
     isGiftCardFlow
       ? (giftStep === 0 ? "Continue to payment →" : "Done ✓")
-      : (step === 4 ? "Continue to payment →" : "Continue →");
+      : (step === 4 || (step === 3 && !isNewPatient) ? "Continue to payment →" : "Continue →");
 
   // ── Page mode render ──────────────────────────────────────
   if (mode === 'page') {
     return (
       <div style={{ maxWidth: 780, margin: '0 auto', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
-        {!isDone && (
+        {!isDone && customerType !== null && (
           <div style={{ marginBottom: 20 }}>
-            <StepBar step={step} compact />
+            <StepBar step={step} compact labels={isNewPatient ? STEP_LABELS_NEW : STEP_LABELS_EXISTING} />
           </div>
         )}
         <div>
           {isDone ? (
             <Confirmation booking={regBooking} onClose={onClose} isGiftFlow={false} />
+          ) : customerType === null ? (
+            <CustomerTypeStep value={customerType} onChange={type => setCustomerType(type)} />
           ) : (
             <>
               {step === 0 && <PagePricingStep selected={product} onSelect={setProduct} products={liveProducts} />}
@@ -1361,9 +1373,9 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
               {showNavBtns && step !== 2 && (
                 <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-                  {step > 0 && <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>}
-                  <button onClick={() => canNext && handleNext()} style={{ ...btn("primary"), flex: step > 0 ? 2 : 1, cursor: canNext ? "pointer" : "not-allowed", opacity: canNext ? 1 : 0.45 }}>
-                    {step === 4 ? "Continue to payment →" : "Continue →"}
+                  <button onClick={handleBack} style={btn("ghost", { flex: 1 })}>← Back</button>
+                  <button onClick={() => canNext && handleNext()} style={{ ...btn("primary"), flex: 2, cursor: canNext ? "pointer" : "not-allowed", opacity: canNext ? 1 : 0.45 }}>
+                    {nextLabel}
                   </button>
                 </div>
               )}
@@ -1392,10 +1404,10 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: C.textSec, lineHeight: 1, padding: "0 4px" }}>×</button>
         </div>
 
-        {/* Step bar */}
-        {!isDone && (
+        {/* Step bar — hidden on customer type pre-screen */}
+        {!isDone && customerType !== null && (
           <div style={{ padding: "10px 24px 8px" }}>
-            {isGiftCardFlow ? <GiftStepBar giftStep={giftStep} /> : <StepBar step={step} />}
+            {isGiftCardFlow ? <GiftStepBar giftStep={giftStep} /> : <StepBar step={step} labels={isNewPatient ? STEP_LABELS_NEW : STEP_LABELS_EXISTING} />}
           </div>
         )}
 
@@ -1403,6 +1415,8 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
         <div style={{ padding: "6px 24px 20px" }}>
           {isDone ? (
             <Confirmation booking={isGiftCardFlow ? giftBooking : regBooking} onClose={onClose} isGiftFlow={isGiftCardFlow} />
+          ) : !isGiftCardFlow && customerType === null ? (
+            <CustomerTypeStep value={customerType} onChange={type => { setCustomerType(type); }} />
           ) : isGiftCardFlow ? (
             <>
               {giftStep === 0 && <ContactStep value={giftContact} onChange={setGiftContact} isGiftCard selectedProduct={giftProduct} onProductSelect={setGiftProduct} />}
