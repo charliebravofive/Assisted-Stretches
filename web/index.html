@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Assisted Stretches — Brisbane's Dedicated Stretching Studio</title>
-    <meta name="description" content="One-on-one assisted stretching in Brisbane. 60-minute PNF sessions for flexibility, recovery and pain relief. 4.9★ across 180+ reviews. Book from $125." />
+    <meta name="description" content="One-on-one assisted stretching in Brisbane. 60-minute PNF sessions for flexibility, recovery and pain relief. 4.9★ across 180+ Google reviews. Book from $125." />
     <meta name="author" content="Assisted Stretches" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="theme-color" content="#2D3D35" />
+    <meta name="keywords" content="assisted stretching Brisbane, PNF stretching Brisbane, stretching studio Brisbane, flexibility studio Balmoral, one on one stretching, hamstring stretching Brisbane, hip flexor release, back pain stretching, recovery stretching, sports stretching Brisbane, Balmoral stretching studio" />
 
     <!-- Geo / Local SEO -->
     <meta name="geo.region" content="AU-QLD" />
@@ -15,7 +16,16 @@
     <meta name="geo.position" content="-27.4694;153.0570" />
     <meta name="ICBM" content="-27.4694, 153.0570" />
 
+    <!-- Canonical + hreflang -->
     <link rel="canonical" href="https://www.assistedstretches.com/" />
+    <link rel="alternate" hreflang="en-AU" href="https://www.assistedstretches.com/" />
+    <link rel="alternate" hreflang="en" href="https://www.assistedstretches.com/" />
+
+    <!-- Preload above-fold resources -->
+    <link rel="preload" as="image" href="/session-hero.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -31,12 +41,17 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@assistedstretches" />
     <meta name="twitter:title" content="Assisted Stretches — Brisbane's Dedicated Stretching Studio" />
     <meta name="twitter:description" content="One-on-one assisted stretching in Brisbane. 60-minute PNF sessions for flexibility, recovery and pain relief. 4.9★ across 180+ reviews." />
     <meta name="twitter:image" content="https://www.assistedstretches.com/session-hero.jpg" />
     <meta name="twitter:image:alt" content="Practitioner performing assisted stretching on a client at Assisted Stretches Brisbane" />
 
-    <!-- Structured Data — static, present before JS executes -->
+    <!-- ══════════════════════════════════════════════════════
+         STRUCTURED DATA
+         ══════════════════════════════════════════════════════ -->
+
+    <!-- LocalBusiness + WebSite -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -49,7 +64,12 @@
           "url": "https://www.assistedstretches.com",
           "email": "hello@assistedstretches.com",
           "image": "https://www.assistedstretches.com/session-hero.jpg",
-          "logo": "https://www.assistedstretches.com/session-hero.jpg",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://www.assistedstretches.com/session-hero.jpg",
+            "width": 1200,
+            "height": 800
+          },
           "address": {
             "@type": "PostalAddress",
             "streetAddress": "41 Barton Parade",
@@ -65,28 +85,13 @@
           },
           "hasMap": "https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171",
           "openingHoursSpecification": [
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": "https://schema.org/Friday",
-              "opens": "16:00",
-              "closes": "18:00"
-            },
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": "https://schema.org/Saturday",
-              "opens": "08:00",
-              "closes": "16:00"
-            },
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": "https://schema.org/Sunday",
-              "opens": "09:00",
-              "closes": "12:00"
-            }
+            { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Friday",   "opens": "16:00", "closes": "18:00" },
+            { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Saturday", "opens": "08:00", "closes": "16:00" },
+            { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Sunday",   "opens": "09:00", "closes": "12:00" }
           ],
-          "priceRange": "$125–$1,000",
+          "priceRange": "$125",
           "currenciesAccepted": "AUD",
-          "paymentAccepted": "Credit Card, EFTPOS, HICAPS",
+          "paymentAccepted": "Credit Card, Apple Pay, EFTPOS, HICAPS",
           "aggregateRating": {
             "@type": "AggregateRating",
             "ratingValue": "4.9",
@@ -94,6 +99,26 @@
             "bestRating": "5",
             "worstRating": "1"
           },
+          "review": [
+            {
+              "@type": "Review",
+              "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+              "author": { "@type": "Person", "name": "Sarah K." },
+              "reviewBody": "I've tried everything for my tight hips — physio, yoga, foam rolling. Nothing has come close to what a single session here achieved. I walked out standing straighter."
+            },
+            {
+              "@type": "Review",
+              "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+              "author": { "@type": "Person", "name": "Marcus R." },
+              "reviewBody": "As a runner logging 70km+ per week, recovery is everything. My hamstrings went from chronic tightness to the most mobile they've been in years."
+            },
+            {
+              "@type": "Review",
+              "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+              "author": { "@type": "Person", "name": "Jo M." },
+              "reviewBody": "My partner kept saying his back was killing him. He's been three times and is a different person. Easily the best gift I've given him."
+            }
+          ],
           "areaServed": [
             { "@type": "City", "name": "Brisbane" },
             { "@type": "Place", "name": "Balmoral QLD 4171" },
@@ -104,10 +129,44 @@
             { "@type": "Place", "name": "Morningside QLD 4170" },
             { "@type": "Place", "name": "Camp Hill QLD 4152" },
             { "@type": "Place", "name": "Coorparoo QLD 4151" },
-            { "@type": "Place", "name": "Woolloongabba QLD 4102" }
+            { "@type": "Place", "name": "Woolloongabba QLD 4102" },
+            { "@type": "Place", "name": "Greenslopes QLD 4120" },
+            { "@type": "Place", "name": "Stones Corner QLD 4120" }
           ],
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Assisted Stretching Services",
+            "itemListElement": [
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Single Assisted Stretch Session",
+                  "description": "One-on-one 60-minute assisted stretch session using PNF technique. Full postural assessment, personalised routine targeting hamstrings, hips, shoulders, and lower back. First-session money-back guarantee."
+                },
+                "price": "125",
+                "priceCurrency": "AUD",
+                "availability": "https://schema.org/InStock",
+                "url": "https://www.assistedstretches.com/#/session"
+              }
+            ]
+          },
+          "potentialAction": {
+            "@type": "ReserveAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://www.assistedstretches.com/",
+              "actionPlatform": [
+                "https://schema.org/DesktopWebPlatform",
+                "https://schema.org/MobileWebPlatform"
+              ]
+            },
+            "result": {
+              "@type": "Reservation",
+              "name": "Assisted Stretch Session Booking"
+            }
+          },
           "serviceType": "Assisted Stretching",
-          "keywords": "assisted stretching Brisbane, PNF stretching Brisbane, one-on-one stretching, flexibility studio Brisbane, stretch studio Balmoral, hamstring stretching, hip flexor release, back pain stretching Brisbane, recovery stretching, sports stretching Brisbane",
           "sameAs": [
             "https://www.instagram.com/assistedstretches",
             "https://www.facebook.com/assistedstretches"
@@ -120,18 +179,128 @@
           "name": "Assisted Stretches",
           "description": "Brisbane's dedicated one-on-one assisted stretching studio — 60-minute PNF sessions for flexibility, recovery, and pain relief.",
           "publisher": { "@id": "https://www.assistedstretches.com/#business" },
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": {
-              "@type": "EntryPoint",
-              "urlTemplate": "https://www.assistedstretches.com/?s={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-          }
+          "inLanguage": "en-AU"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://www.assistedstretches.com/#webpage",
+          "url": "https://www.assistedstretches.com/",
+          "name": "Assisted Stretches — Brisbane's Dedicated Stretching Studio",
+          "description": "One-on-one assisted stretching in Brisbane. 60-minute PNF sessions for flexibility, recovery and pain relief. 4.9★ across 180+ Google reviews. Book from $125.",
+          "isPartOf": { "@id": "https://www.assistedstretches.com/#website" },
+          "about": { "@id": "https://www.assistedstretches.com/#business" },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://www.assistedstretches.com/session-hero.jpg"
+          },
+          "inLanguage": "en-AU",
+          "dateModified": "2026-06-04"
         }
       ]
     }
     </script>
+
+    <!-- FAQPage — drives rich results (accordion) in Google SERP -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Will assisted stretching hurt?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Pressure is always within your comfort. We work to a good stretch feeling — if it ever tips into pain, we back off immediately." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to be flexible to benefit from assisted stretching?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The less flexible you are, the more dramatic the gain. Tightness is the reason to come, not the reason to wait." }
+        },
+        {
+          "@type": "Question",
+          "name": "What do I wear to an assisted stretch session?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Gym shorts and a t-shirt, or anything you can move freely in. Think of what you would wear to a yoga class or the gym. No need to undress." }
+        },
+        {
+          "@type": "Question",
+          "name": "How often should I get assisted stretching?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Most clients see best results once a week or fortnight. Athletes in heavy training blocks often come twice a week. Even a single session produces measurable improvement." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is assisted stretching covered by health funds in Australia?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Many Australian extras policies cover remedial elements of the session through HICAPS on-site. Check with your fund before booking to confirm your eligibility." }
+        },
+        {
+          "@type": "Question",
+          "name": "What is PNF stretching?",
+          "acceptedAnswer": { "@type": "Answer", "text": "PNF (proprioceptive neuromuscular facilitation) uses contract-relax cycles to access ranges of motion your body normally protects. By briefly contracting a muscle before releasing it into a stretch, the practitioner can safely take you past the limits your nervous system normally imposes. The result is deeper, faster, and longer-lasting change than passive stretching alone." }
+        },
+        {
+          "@type": "Question",
+          "name": "How is assisted stretching different from yoga or massage?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Massage therapists work tissue with pressure. Yoga instructors teach you to move your own body. Assisted stretching is different — a trained practitioner moves your body through targeted PNF and passive stretches that are impossible to achieve alone. Your muscles fully release because you are not controlling the movement. The precision also differs: sessions target your specific imbalances in real time." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can assisted stretching help with back pain and desk-related stiffness?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Hip flexors, hamstrings, chest muscles, and spinal muscles that tighten from prolonged sitting are the primary targets. Most clients notice a meaningful reduction in daily stiffness and pain with regular sessions." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a money-back guarantee?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. If you do not feel a measurable difference after your first session, we will refund you in full." }
+        },
+        {
+          "@type": "Question",
+          "name": "How long is an assisted stretch session?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sessions are 60 minutes. This includes a brief range-of-movement assessment at the start, 45 minutes of hands-on stretching, and a retest at the end so you can feel the difference." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is assisted stretching safe if I have an injury?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Assisted stretching can be safely adapted around most injuries and conditions. You will complete a health waiver before your first session. Always disclose current injuries, surgeries, or medical conditions so the session can be tailored appropriately." }
+        },
+        {
+          "@type": "Question",
+          "name": "Where is Assisted Stretches located?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Assisted Stretches is located at 41 Barton Parade, Balmoral, Brisbane QLD 4171, Australia. Street parking is available on Barton Parade." }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Service schema — helps Google surface the service in knowledge panels -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "@id": "https://www.assistedstretches.com/#service-single-session",
+      "name": "One-on-One Assisted Stretch Session",
+      "alternateName": ["Assisted Stretching Brisbane", "PNF Stretching Brisbane", "Flexibility Session Brisbane"],
+      "description": "A 60-minute one-on-one assisted stretch session at our Brisbane studio. A trained practitioner uses PNF (proprioceptive neuromuscular facilitation) technique to guide your body through a full sequence of held and dynamic stretches targeting hamstrings, hips, lower back, shoulders, and neck. Client receives a full postural assessment, personalised session, and take-home stretches. First-session money-back guarantee.",
+      "provider": { "@id": "https://www.assistedstretches.com/#business" },
+      "areaServed": { "@type": "City", "name": "Brisbane" },
+      "serviceType": "Assisted Stretching",
+      "category": "Health and Wellness",
+      "offers": {
+        "@type": "Offer",
+        "price": "125",
+        "priceCurrency": "AUD",
+        "availability": "https://schema.org/InStock",
+        "priceValidUntil": "2027-12-31",
+        "url": "https://www.assistedstretches.com/#/session"
+      },
+      "termsOfService": "https://www.assistedstretches.com/#/faq",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "180",
+        "bestRating": "5"
+      }
+    }
+    </script>
+
   </head>
   <body>
     <div id="root"></div>
