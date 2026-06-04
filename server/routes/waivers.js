@@ -1,6 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const store   = require('../store');
+const { sendWaiverEmail } = require('../lib/mailer');
 
 // POST /api/waivers — submit a new client waiver
 router.post('/', (req, res) => {
@@ -34,6 +35,14 @@ router.post('/', (req, res) => {
       agree_cancellation, agree_injuries_disclosed, agree_liability,
       signature,
     });
+
+    // Email a copy of the waiver to the studio (non-fatal)
+    sendWaiverEmail({
+      first_name, last_name, email, phone, date_of_birth, heard_about_us,
+      sleep_hours, sleep_quality, water_litres,
+      exercise_frequency, exercise_types, exercise_ability,
+      injuries, surgeries, goals, signature,
+    }).catch(err => console.error('Waiver email failed (non-fatal):', err.message));
 
     res.json({ success: true, id: waiver.id });
   } catch (err) {

@@ -166,4 +166,73 @@ async function sendBookingCancellationEmail({ first_name, last_name, email, sess
   }
 }
 
-module.exports = { sendGiftCardEmail, sendBookingConfirmationEmail, sendBookingCancellationEmail, sendContactEnquiryEmail };
+async function sendWaiverEmail({
+  first_name, last_name, email, phone, date_of_birth, heard_about_us,
+  sleep_hours, sleep_quality, water_litres,
+  exercise_frequency, exercise_types, exercise_ability,
+  injuries, surgeries, goals, signature,
+}) {
+  if (!resend) return;
+  const fullName = `${first_name} ${last_name}`.trim();
+  const row = (label, value) => value
+    ? `<div><strong style="color:#2D3D35;">${label}:</strong> ${String(value)}</div>`
+    : '';
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to: 'hello@assistedstretches.com',
+      subject: `New waiver — ${fullName}`,
+      html: `
+        <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;background:#F0ECE6;padding:40px 32px;border-radius:12px;">
+          <h1 style="color:#2D3D35;font-size:24px;font-weight:400;margin-bottom:4px;">New client waiver received</h1>
+          <p style="color:#9C9088;font-size:13px;margin:0 0 28px;">Submitted by ${fullName} on ${new Date().toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' })}</p>
+
+          <h2 style="color:#2D3D35;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 10px;">Client Details</h2>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:20px;font-size:14px;line-height:2.2;color:#6B6054;">
+            ${row('Name', fullName)}
+            ${row('Email', email)}
+            ${row('Phone', phone)}
+            ${row('Date of birth', date_of_birth)}
+            ${row('Heard about us', heard_about_us)}
+          </div>
+
+          <h2 style="color:#2D3D35;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 10px;">Health & Lifestyle</h2>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:20px;font-size:14px;line-height:2.2;color:#6B6054;">
+            ${row('Sleep (hrs/night)', sleep_hours)}
+            ${row('Sleep quality', sleep_quality)}
+            ${row('Water intake (L/day)', water_litres)}
+            ${row('Exercise frequency', exercise_frequency)}
+            ${row('Exercise types', Array.isArray(exercise_types) ? exercise_types.join(', ') : exercise_types)}
+            ${row('Exercise ability', exercise_ability)}
+          </div>
+
+          <h2 style="color:#2D3D35;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 10px;">Medical History & Goals</h2>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:20px;font-size:14px;line-height:2.2;color:#6B6054;">
+            ${row('Injuries / conditions', injuries || 'None disclosed')}
+            ${row('Surgeries', surgeries || 'None disclosed')}
+            ${row('Goals', goals || 'Not specified')}
+          </div>
+
+          <h2 style="color:#2D3D35;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 10px;">Agreements</h2>
+          <div style="background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:20px;font-size:14px;line-height:2.2;color:#6B6054;">
+            <div>✅ Cancellation policy accepted</div>
+            <div>✅ Injuries / conditions disclosed</div>
+            <div>✅ Liability waiver accepted</div>
+          </div>
+
+          ${signature ? `
+          <h2 style="color:#2D3D35;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 10px;">Signature</h2>
+          <div style="background:#fff;border-radius:10px;padding:16px;margin-bottom:20px;text-align:center;">
+            <img src="${signature}" alt="Client signature" style="max-width:100%;max-height:120px;border:1px solid #E8E0D5;border-radius:6px;" />
+          </div>` : ''}
+
+          <p style="font-size:12px;color:#9C9088;margin-top:8px;">View all waivers in your <a href="https://www.assistedstretches.com/admin" style="color:#C8856A;">admin portal</a>.</p>
+        </div>
+      `,
+    });
+  } catch (err) {
+    console.error('Waiver email error (non-fatal):', err.message);
+  }
+}
+
+module.exports = { sendGiftCardEmail, sendBookingConfirmationEmail, sendBookingCancellationEmail, sendContactEnquiryEmail, sendWaiverEmail };
