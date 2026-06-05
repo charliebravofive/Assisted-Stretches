@@ -1,9 +1,10 @@
-const express = require('express');
-const router  = express.Router();
-const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const store   = require('../store');
+const express      = require('express');
+const router       = require('express').Router();
+const stripe       = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const store        = require('../store');
+const reservations = require('../lib/slotReservations');
 
-const PRICES = { 'session': 5000, 'gift-session': 12500 }; // cents — session is $50 deposit
+const PRICES = { 'session': 5000, 'gift-session': 12500 }; // cents
 
 const STRIPE_PRODUCT_IDS = {
   'session':      'prod_UZKORgA5V4FhvL',
@@ -17,20 +18,36 @@ router.post('/intent', async (req, res) => {
     const amount = PRICES[product_id];
     if (!amount) return res.status(400).json({ error: 'Invalid product' });
 
-    // ── Slot availability check BEFORE charging the card ──────
-    // For session bookings, verify the slot is still free.
-    // This prevents a customer from being charged for an already-taken slot.
+    // ── Slot guard for session bookings ────────────────────────
+    // Two checks before any card is charged:
+    //   1. Confirmed bookings in the database (definitive)
+    //   2. Active reservations (another client currently in payment)
+    // Both checks + the reservation write happen synchronously, so
+    // Node's single-threaded event loop ensures no two requests can
+    // interleave here — making this effectively atomic.
     if (product_id === 'session' && session_date && session_time) {
-      const conflict = store.bookings.list().find(
+      // 1. Confirmed booking exists?
+      const confirmed = store.bookings.list().find(
         b => b.session_date === session_date &&
              b.session_time === session_time &&
              b.status !== 'cancelled'
       );
-      if (conflict) {
+      if (confirmed) {
         return res.status(409).json({
-          error: 'That time slot was just booked by someone else. Please go back and choose another time — you have not been charged.',
+          error: 'That time slot is already booked. Please choose a different time.',
         });
       }
+
+      // 2. Another client is currently paying for this slot?
+      if (reservations.isReserved(session_date, session_time)) {
+        return res.status(409).json({
+          error: 'That time slot is currently being booked by another client. Please choose a different time.',
+        });
+      }
+
+      // Reserve the slot now — before the async Stripe call.
+      // This closes the race-condition window.
+      reservations.reserve(session_date, session_time, `pending-${Date.now()}`);
     }
 
     const stripeProductId = STRIPE_PRODUCT_IDS[product_id];
@@ -44,6 +61,12 @@ router.post('/intent', async (req, res) => {
         ...(session_date ? { session_date, session_time } : {}),
       },
     });
+
+    // Update the reservation with the real Intent ID so it can be matched
+    // if the client cancels before paying (TTL auto-releases it anyway).
+    if (product_id === 'session' && session_date && session_time) {
+      reservations.reserve(session_date, session_time, intent.id);
+    }
 
     res.json({ clientSecret: intent.client_secret, paymentIntentId: intent.id });
   } catch (err) {

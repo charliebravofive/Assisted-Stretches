@@ -1,8 +1,9 @@
-const express = require('express');
-const router  = express.Router();
-const fs      = require('fs');
-const path    = require('path');
-const store   = require('../store');
+const express      = require('express');
+const router       = express.Router();
+const fs           = require('fs');
+const path         = require('path');
+const store        = require('../store');
+const reservations = require('../lib/slotReservations');
 const { sendBookingConfirmationEmail } = require('../lib/mailer');
 
 const CONFIG_FILE = path.join(__dirname, '../data/config.json');
@@ -45,16 +46,20 @@ router.get('/availability', (req, res) => {
     return res.json({ date, taken: 'all', holiday: true, holidayName: holiday.name });
   }
 
-  const allBookings = store.bookings.list();
-  const taken = allBookings
+  // Confirmed bookings
+  const confirmed = store.bookings.list()
     .filter(b => b.session_date === date && b.status !== 'cancelled')
     .map(b => b.session_time);
 
-  const blockedSlots = (config.blocked_slots || [])
+  // Blocked slots from config
+  const blocked = (config.blocked_slots || [])
     .filter(s => s.date === date)
     .map(s => s.time);
 
-  const allTaken = [...new Set([...taken, ...blockedSlots])];
+  // In-progress reservations (another client is currently paying for this slot)
+  const reserved = reservations.getReservedTimesForDate(date);
+
+  const allTaken = [...new Set([...confirmed, ...blocked, ...reserved])];
   res.json({ date, taken: allTaken, holiday: false });
 });
 
@@ -75,13 +80,13 @@ router.post('/', async (req, res) => {
     const holiday = findHoliday(session_date, cfg.holidays || []);
     if (holiday) return res.status(409).json({ error: `Studio is closed for ${holiday.name}.` });
 
-    // Double-booking check
+    // Final double-booking guard (synchronous — atomic in Node.js single-threaded model)
     const existing = store.bookings.list().find(
       b => b.session_date === session_date && b.session_time === session_time && b.status !== 'cancelled'
     );
     if (existing) return res.status(409).json({ error: 'That slot is already booked.' });
 
-    const now  = new Date().toISOString();
+    const now    = new Date().toISOString();
     const record = store.bookings.create({
       gift_card_code: null,
       first_name, last_name, email, phone,
@@ -92,10 +97,18 @@ router.post('/', async (req, res) => {
       created_at: now,
     });
 
+    // Release the in-progress reservation — booking is now confirmed
+    reservations.release(session_date, session_time);
+
     store.clients.upsert({ first_name, last_name, email, phone, source: 'booking', created_at: now });
 
     try {
-      await sendBookingConfirmationEmail({ email, firstName: first_name, lastName: last_name, phone, sessionDate: session_date, sessionTime: session_time, productLabel: PRODUCT_LABELS[product_id] || product_id, notes: notes || null });
+      await sendBookingConfirmationEmail({
+        email, firstName: first_name, lastName: last_name, phone,
+        sessionDate: session_date, sessionTime: session_time,
+        productLabel: PRODUCT_LABELS[product_id] || product_id,
+        notes: notes || null,
+      });
     } catch (mailErr) {
       console.error('Confirmation email failed (non-fatal):', mailErr.message);
     }
