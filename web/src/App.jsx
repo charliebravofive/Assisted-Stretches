@@ -172,9 +172,16 @@ const globalStyles = `
   .delay-3 { animation-delay: 0.36s; }
   .delay-4 { animation-delay: 0.48s; }
 
+  /* About page image — shown only on mobile inline, hidden on desktop */
+  .mobile-about-image { display: none; }
+
   @media (max-width: 768px) {
     .desktop-nav { display: none !important; }
     .mobile-menu-btn { display: flex !important; }
+
+    /* About page images — swap visibility on mobile */
+    .mobile-about-image { display: block !important; }
+    .desktop-about-image { display: none !important; }
 
     /* Reduce large italic paragraph sizes on mobile */
     p { font-size: clamp(14px, 3.8vw, 18px) !important; }
@@ -650,8 +657,8 @@ function PractitionerBio() {
   return (
     <Section id="about" style={{ background: "var(--white)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }} className="bio-grid">
-        <div style={{ borderRadius: 14, height: 80, overflow: "hidden", background: "#c8c8c8", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
+        <div style={{ borderRadius: 14, height: 80, overflow: "hidden" }}>
+          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%", filter: "grayscale(100%) contrast(1.05)" }} />
         </div>
         <div>
           <SectionLabel text="Your practitioner" />
@@ -931,6 +938,10 @@ function AboutPage({ onBook }) {
             <p className="fade-up delay-2" style={{ fontSize: 21, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 24, opacity: 0 }}>
               We built Assisted Stretches for people who want results they can feel in their hips the next morning, their shoulders in their next workout, and their posture within weeks.
             </p>
+            {/* Mobile-only: about image shown here between About section and Practitioner section */}
+            <div className="mobile-about-image" style={{ borderRadius: 14, overflow: "hidden", marginBottom: 24 }}>
+              <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: 220, objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)", display: "block" }} />
+            </div>
             <div style={{ borderTop: "1px solid var(--bone-dark)", paddingTop: 20 }}>
               <SectionLabel text="Your practitioner" />
               <p style={{ fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", marginBottom: 10 }}>
@@ -942,11 +953,11 @@ function AboutPage({ onBook }) {
             </div>
           </div>
           <div className="fade-in delay-3" style={{ opacity: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
+            <div className="desktop-about-image" style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
-            <div style={{ borderRadius: 14, height: "min(9vh, 70px)", overflow: "hidden", marginTop: 80, background: "#c8c8c8" }}>
-              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", filter: "grayscale(100%) contrast(1.05)" }} />
+            <div style={{ borderRadius: 14, height: "min(9vh, 70px)", overflow: "hidden", marginTop: 80 }}>
+              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
             <div style={{ textAlign: "center", marginTop: 12, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
           </div>
