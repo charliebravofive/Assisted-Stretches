@@ -14,6 +14,7 @@ const PAGES = {
   tenPack: "10-pack",
   giftCards: "gift-cards",
   faq: "faq",
+  queries: "queries",
   contact: "contact",
 };
 
@@ -444,6 +445,7 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
     { label: "Benefits",    type: "page",   target: PAGES.benefits },
     { label: "About",       type: "page",   target: PAGES.about },
     { label: "FAQs",        type: "page",   target: PAGES.faq },
+    { label: "Queries",     type: "page",   target: PAGES.queries },
     { label: "Contact",     type: "page",   target: PAGES.contact },
   ];
 
@@ -657,8 +659,8 @@ function PractitionerBio() {
   return (
     <Section id="about" style={{ background: "var(--white)" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }} className="bio-grid">
-        <div style={{ borderRadius: 14, height: 80, overflow: "hidden" }}>
-          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%", filter: "grayscale(100%) contrast(1.05)" }} />
+        <div style={{ textAlign: "center" }}>
+          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "40%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
         </div>
         <div>
           <SectionLabel text="Your practitioner" />
@@ -956,8 +958,8 @@ function AboutPage({ onBook }) {
             <div className="desktop-about-image" style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
-            <div style={{ borderRadius: 14, height: "min(9vh, 70px)", overflow: "hidden", marginTop: 80 }}>
-              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%", filter: "grayscale(100%) contrast(1.05)" }} />
+            <div style={{ marginTop: 80, textAlign: "center" }}>
+              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "50%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
             <div style={{ textAlign: "center", marginTop: 12, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
           </div>
@@ -1332,7 +1334,7 @@ function FaqChat() {
       setSending(true);
       addMessages([userMsg]);
       try {
-        const res = await fetch("http://localhost:3001/api/contact", {
+        const res = await fetch("/api/contact", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1508,6 +1510,31 @@ function ContactModal({ isOpen, onClose }) {
   );
 }
 
+// ─── QUERIES PAGE ────────────────────────────────────────────
+function QueriesPage() {
+  usePageMeta({
+    title: "Ask a Question | Assisted Stretches Brisbane",
+    description: "Have a question about assisted stretching? Ask us here and we'll reply within one business day.",
+    path: "queries",
+  });
+  return (
+    <Section style={{ paddingTop: 40 }}>
+      <div style={{ maxWidth: 560 }}>
+        <div className="fade-up" style={{ opacity: 0 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>ASK US ANYTHING</div>
+        </div>
+        <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(30px, 4.5vw, 46px)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
+          Got a question?
+        </h1>
+        <p className="fade-up delay-2" style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0 }}>
+          Ask us anything about assisted stretching — technique, what to expect, health fund cover, or booking. We'll reply to your email within one business day.
+        </p>
+        <FaqChat />
+      </div>
+    </Section>
+  );
+}
+
 // ─── FAQ PAGE ────────────────────────────────────────────────
 function FaqPage({ onBook }) {
   usePageMeta({
@@ -1527,38 +1554,31 @@ function FaqPage({ onBook }) {
   const [openIdx, setOpenIdx] = useState(null);
   return (
     <Section style={{ paddingTop: 40 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 48, alignItems: "start", maxWidth: 1200 }}>
-        {/* Left — questions */}
-        <div>
-          <div className="fade-up" style={{ opacity: 0 }}>
-            <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>FREQUENTLY ASKED QUESTIONS</div>
-          </div>
-          <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
-            Everything you want to know.
-          </h1>
-          <p className="fade-up delay-2" style={{ fontSize: 19.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0, maxWidth: 560 }}>
-            Answers to the most common questions about assisted stretching — what it is, who it's for, and what to expect.
-          </p>
-          {DETAILED_FAQS.map((faq, i) => (
-            <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
-              <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left", gap: 20 }}>
-                <span>{faq.q}</span>
-                <span style={{ fontSize: 24, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, fontWeight: 300, lineHeight: 1, marginTop: 2 }}>+</span>
-              </button>
-              <div style={{ maxHeight: openIdx === i ? 800 : 0, overflow: "hidden", transition: "max-height 0.5s ease" }}>
-                <div style={{ paddingBottom: 28 }}>
-                  {faq.a.split("\n\n").map((para, j) => (
-                    <p key={j} style={{ fontSize: 18.75, lineHeight: 1.75, color: "var(--text-secondary)", marginBottom: j < faq.a.split("\n\n").length - 1 ? 16 : 0 }}>{para}</p>
-                  ))}
-                </div>
+      <div style={{ maxWidth: 760 }}>
+        <div className="fade-up" style={{ opacity: 0 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>FREQUENTLY ASKED QUESTIONS</div>
+        </div>
+        <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4.5vw, 48px)", fontWeight: 400, lineHeight: 1.08, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
+          Everything you want to know.
+        </h1>
+        <p className="fade-up delay-2" style={{ fontSize: 19.5, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0 }}>
+          Answers to the most common questions about assisted stretching — what it is, who it's for, and what to expect.
+        </p>
+        {DETAILED_FAQS.map((faq, i) => (
+          <div key={i} style={{ borderBottom: "1px solid var(--sand)" }}>
+            <button onClick={() => setOpenIdx(openIdx === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 15.5, fontWeight: 500, color: "var(--forest-ink)", textAlign: "left", gap: 20 }}>
+              <span>{faq.q}</span>
+              <span style={{ fontSize: 24, color: "var(--deep-clay)", transition: "transform 0.3s", transform: openIdx === i ? "rotate(45deg)" : "none", flexShrink: 0, fontWeight: 300, lineHeight: 1, marginTop: 2 }}>+</span>
+            </button>
+            <div style={{ maxHeight: openIdx === i ? 800 : 0, overflow: "hidden", transition: "max-height 0.5s ease" }}>
+              <div style={{ paddingBottom: 28 }}>
+                {faq.a.split("\n\n").map((para, j) => (
+                  <p key={j} style={{ fontSize: 18.75, lineHeight: 1.75, color: "var(--text-secondary)", marginBottom: j < faq.a.split("\n\n").length - 1 ? 16 : 0 }}>{para}</p>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-        {/* Right — chat box */}
-        <div style={{ position: "sticky", top: 24 }}>
-          <FaqChat />
-        </div>
+          </div>
+        ))}
       </div>
     </Section>
   );
@@ -1609,6 +1629,7 @@ export default function App() {
         {page === PAGES.fivePack && <SessionPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.tenPack && <TenPackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.faq && <FaqPage onBook={openBooking} />}
+        {page === PAGES.queries && <QueriesPage />}
         {page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
         <StickyCTA page={page} onBook={openBooking} />
       </div>
