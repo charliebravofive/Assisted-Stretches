@@ -758,6 +758,23 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
   const [useGift,        setUseGift]        = useState(false);
   const [paymentRequest, setPaymentRequest] = useState(null);
   const [prAvailable,    setPrAvailable]    = useState(false);
+  const [slotTaken,      setSlotTaken]      = useState(false);
+
+  // ── Re-validate slot availability when payment form mounts ───
+  useEffect(() => {
+    if (isGiftFlow || !booking.date || !booking.time) return;
+    const ddmmyyyy = booking.date.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
+    fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`)
+      .then(r => r.json())
+      .then(d => {
+        const taken = Array.isArray(d.taken) ? d.taken : [];
+        if (d.taken === 'all' || taken.includes(booking.time)) {
+          setSlotTaken(true);
+          setError("Sorry — this time slot was just booked by someone else. Please go back and choose another time.");
+        }
+      })
+      .catch(() => {}); // non-fatal — server checks anyway
+  }, []);
 
   // ── Apple Pay / Google Pay via Stripe Payment Request ──────
   useEffect(() => {
@@ -791,10 +808,16 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     pr.on("paymentmethod", async ev => {
       setLoading(true); setError(null);
       try {
-        // 1. Create PaymentIntent
+        // 1. Create PaymentIntent (also validates slot is still free)
         const intentRes = await fetch("/api/payments/intent", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product_id: isGiftFlow ? "gift-session" : booking.product?.id }),
+          body: JSON.stringify({
+            product_id: isGiftFlow ? "gift-session" : booking.product?.id,
+            ...(!isGiftFlow && booking.date && booking.time ? {
+              session_date: booking.date.toLocaleDateString("en-AU"),
+              session_time: booking.time,
+            } : {}),
+          }),
         });
         const intentData = await intentRes.json();
         const { clientSecret, error: intentErr } = intentData;
@@ -866,10 +889,17 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     if (!stripe || !elements) return;
     setLoading(true); setError(null);
     try {
-      // 1. Create PaymentIntent on server
+      // 1. Create PaymentIntent on server (also validates slot is still free)
       const intentRes = await fetch("/api/payments/intent", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: isGiftFlow ? 'gift-session' : booking.product?.id }),
+        body: JSON.stringify({
+          product_id: isGiftFlow ? 'gift-session' : booking.product?.id,
+          // Pass slot details so server can verify availability before charging
+          ...(!isGiftFlow && booking.date && booking.time ? {
+            session_date: booking.date.toLocaleDateString("en-AU"),
+            session_time: booking.time,
+          } : {}),
+        }),
       });
       const intentText = await intentRes.text();
       if (!intentText) throw new Error("Server returned an empty response. Please check the server is running.");
@@ -935,6 +965,21 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
       setLoading(false);
     }
   };
+
+  if (slotTaken) {
+    return (
+      <div style={{ textAlign: "center", padding: "32px 0" }}>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 400, color: C.forest, marginBottom: 12 }}>This slot was just taken</h2>
+        <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7, marginBottom: 4 }}>
+          Someone else booked this time while you were filling in your details.
+        </p>
+        <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7 }}>
+          <strong style={{ color: C.forest }}>You have not been charged.</strong> Please go back and choose another time.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit}>
