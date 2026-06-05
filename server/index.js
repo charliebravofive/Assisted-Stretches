@@ -60,6 +60,18 @@ app.get('/.well-known/apple-developer-merchantid-domain-association', (_req, res
   res.send(content);
 });
 
+// ── Redirect bare domain → www in production ─────────────────
+// Handles traffic arriving via the root A record (assistedstretches.com)
+if (IS_PROD) {
+  app.use((req, res, next) => {
+    const host = req.hostname || req.headers.host || '';
+    if (host === 'assistedstretches.com') {
+      return res.redirect(301, `https://www.assistedstretches.com${req.originalUrl}`);
+    }
+    next();
+  });
+}
+
 // ── Serve built frontend in production ────────────────────────
 if (IS_PROD) {
   const distPath = path.join(__dirname, '../web/dist');
