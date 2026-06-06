@@ -117,9 +117,9 @@ const DETAILED_FAQS = [
 ];
 
 const REVIEWS = [
-  { stars: 5, text: "I've had massage every fortnight for ten years and never felt the kind of release I got in 60 minutes here. Walked out two inches taller.", name: "Sarah K.", label: "desk worker, runner" },
-  { stars: 5, text: "My hips have been a wreck since I started lifting heavy. Three sessions in and my squat depth is back.", name: "Marcus T.", label: "powerlifter" },
-  { stars: 5, text: "Went in skeptical, came out a convert. The take-home stretches alone are worth the price.", name: "Anna L.", label: "physiotherapist" },
+  { stars: 5, text: "I've had massage every fortnight for ten years and never felt the kind of release I got in 60 minutes here. Walked out two inches taller.", name: "Sarah K.", label: "" },
+  { stars: 5, text: "My hips have been a wreck since I started lifting heavy. Three sessions in and my squat depth is back.", name: "Marcus T.", label: "" },
+  { stars: 5, text: "Went in skeptical, came out a convert. The take-home stretches alone are worth the price.", name: "Anna L.", label: "" },
 ];
 
 const GIFT_REVIEWS = [
@@ -644,7 +644,7 @@ function ReviewsSection({ reviews = REVIEWS, title, sub }) {
             <p style={{ fontSize: 19, lineHeight: 1.7, color: "var(--forest-ink)", fontFamily: "var(--font-display)", fontStyle: "italic", marginBottom: 14, fontWeight: 400 }}>"{r.text}"</p>
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 500, color: "var(--forest-ink)" }}>{r.name}</div>
-              <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>{r.label}</div>
+              {r.label && <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>{r.label}</div>}
             </div>
           </div>
         ))}
