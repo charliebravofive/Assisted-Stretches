@@ -1267,19 +1267,31 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-  // Fetch taken slots whenever date changes in regular booking flow
-  useEffect(() => {
-    if (!date) { setTakenSlots([]); return; }
-    const ddmmyyyy = date.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
+  // Fetch taken slots (including active reservations) whenever date changes
+  const fetchAvailability = (d) => {
+    if (!d) { setTakenSlots([]); return; }
+    const ddmmyyyy = d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
     fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`)
       .then(r => r.json())
-      .then(d => {
-        // d.taken may be an array of booked slots, or 'all' string for holidays
-        const taken = Array.isArray(d.taken) ? d.taken : [];
+      .then(data => {
+        const taken = Array.isArray(data.taken) ? data.taken : [];
         setTakenSlots(taken);
       })
-      .catch(() => setTakenSlots([]));
-  }, [date]);
+      .catch(() => {});
+  };
+
+  useEffect(() => { fetchAvailability(date); }, [date]);
+
+  // When the user arrives at the time step (step 2), do an immediate
+  // fresh fetch so any slots reserved since the date was selected are
+  // already greyed out before the user taps anything.
+  // Then poll every 20 seconds to catch real-time reservations.
+  useEffect(() => {
+    if (step !== 2 || !date) return;
+    fetchAvailability(date);                               // immediate refresh on arrival
+    const id = setInterval(() => fetchAvailability(date), 20000);
+    return () => clearInterval(id);
+  }, [step, date]);
 
   if (mode !== 'page' && !isOpen) return null;
 
