@@ -771,7 +771,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     // Amount in cents
     const depositCents = isGiftFlow
       ? (booking.product?.price ?? 125) * 100   // full product price for gift cards
-      : 5000;                                    // $50 deposit for regular sessions
+      : 100;   // $1 TEST — change back to 5000
 
     const label = isGiftFlow
       ? (booking.product?.label ?? "Gift Card")
@@ -958,7 +958,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     <form onSubmit={handleSubmit}>
       <h2 style={{ fontFamily: "Georgia, serif", fontSize: 24, fontWeight: 400, color: C.forest, marginBottom: 8 }}>Payment</h2>
       <p style={{ fontSize: 14, color: C.textSec, marginBottom: 24, lineHeight: 1.6 }}>
-        A <strong style={{ color: C.forest }}>$50 deposit</strong> is charged now to secure your booking. The remaining <strong style={{ color: C.forest }}>$75</strong> is payable on the day.
+        A <strong style={{ color: C.forest }}>$1 deposit</strong> is charged now to secure your booking. The remaining balance is payable on the day.
       </p>
       <BookingSummary booking={booking} isGiftFlow={isGiftFlow} />
       {!isGiftFlow && (
@@ -1003,7 +1003,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
           {DEMO_MODE && <div style={{ background: "#FFF8E7", border: "1px solid #F0C040", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7A5500", marginBottom: 16 }}><strong>Demo mode</strong> — add your Stripe key to <code>.env</code> to enable real payments.</div>}
           {error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
           <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
-            {loading ? "Processing…" : "Confirm & Pay Deposit $50"}
+            {loading ? "Processing…" : "Confirm & Pay $1 Deposit"}
           </button>
         </>
       )}
@@ -1094,7 +1094,7 @@ function DemoPaymentForm({ booking, onSuccess, isGiftFlow }) {
             <strong>Demo mode</strong> — add your Stripe publishable key to <code>.env</code> to enable real payments.
           </div>
           <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
-            {loading ? "Processing…" : "Confirm & Pay Deposit $50"}
+            {loading ? "Processing…" : "Confirm & Pay $1 Deposit"}
           </button>
         </>
       )}
