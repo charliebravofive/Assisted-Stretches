@@ -877,6 +877,19 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
     if (!stripe || !elements) return;
     setLoading(true); setError(null);
     try {
+      // 0. Pre-flight: re-check availability right before charging the card
+      //    so the user gets an instant, clear message if the slot was taken
+      //    while they were filling in their details.
+      if (!isGiftFlow && booking.date && booking.time) {
+        const ddmmyyyy = fmtSessionDate(booking.date);
+        const avRes = await fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`);
+        const avData = await avRes.json().catch(() => ({}));
+        const nowTaken = Array.isArray(avData.taken) ? avData.taken : [];
+        if (nowTaken.includes(booking.time)) {
+          throw new Error("Sorry, that time slot was just booked by someone else. Please go back and choose a different time.");
+        }
+      }
+
       // 1. Create PaymentIntent on server (also validates slot is still free)
       const intentRes = await fetch("/api/payments/intent", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -934,6 +947,14 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
             stripe_payment_id: paymentIntent.id,
           }),
         });
+        // Persist this booking in localStorage so the slot stays grayed out
+        // immediately for this client, even before the next server poll.
+        try {
+          const _key = `${fmtSessionDate(booking.date)}||${booking.time}`;
+          const _existing = JSON.parse(localStorage.getItem("as_confirmed_bookings") || "[]");
+          if (!_existing.includes(_key))
+            localStorage.setItem("as_confirmed_bookings", JSON.stringify([..._existing, _key]));
+        } catch (_) {}
         // Submit waiver separately (non-fatal)
         if (booking.waiver?.signature) {
           fetch("/api/waivers", {
@@ -1272,17 +1293,33 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     return () => window.removeEventListener("keydown", h);
   }, [onClose]);
 
-  // Fetch taken slots (including active reservations) whenever date changes
+  // ── Persistent local bookings ─────────────────────────────────────────────
+  // Store confirmed bookings in localStorage so this browser always shows
+  // its own booked slots as grayed out — even after a page refresh.
+  const LOCAL_BOOKINGS_KEY = "as_confirmed_bookings";
+  const getLocalBookings = () => { try { return JSON.parse(localStorage.getItem(LOCAL_BOOKINGS_KEY) || "[]"); } catch { return []; } };
+  const saveLocalBooking = (date, time) => {
+    const existing = getLocalBookings();
+    const key = `${fmtSessionDate(date)}||${time}`;
+    if (!existing.includes(key)) localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify([...existing, key]));
+  };
+  const getLocalTakenForDate = (d) => {
+    const ddmmyyyy = fmtSessionDate(d);
+    return getLocalBookings().filter(k => k.startsWith(ddmmyyyy + "||")).map(k => k.split("||")[1]);
+  };
+
+  // Fetch taken slots — merges server response with locally-stored confirmed bookings
   const fetchAvailability = (d) => {
     if (!d) { setTakenSlots([]); return; }
     const ddmmyyyy = fmtSessionDate(d);
+    const local = getLocalTakenForDate(d);
     fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`)
       .then(r => r.json())
       .then(data => {
-        const taken = Array.isArray(data.taken) ? data.taken : [];
-        setTakenSlots(taken);
+        const server = Array.isArray(data.taken) ? data.taken : [];
+        setTakenSlots([...new Set([...server, ...local])]);
       })
-      .catch(() => {});
+      .catch(() => { setTakenSlots(local); }); // fallback to local on network error
   };
 
   useEffect(() => { fetchAvailability(date); }, [date]);
@@ -1290,11 +1327,11 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   // When the user arrives at the time step (step 2), do an immediate
   // fresh fetch so any slots reserved since the date was selected are
   // already greyed out before the user taps anything.
-  // Then poll every 20 seconds to catch real-time reservations.
+  // Poll every 5 seconds to catch real-time reservations from other clients.
   useEffect(() => {
     if (step !== 2 || !date) return;
-    fetchAvailability(date);                               // immediate refresh on arrival
-    const id = setInterval(() => fetchAvailability(date), 20000);
+    fetchAvailability(date);
+    const id = setInterval(() => fetchAvailability(date), 5000);
     return () => clearInterval(id);
   }, [step, date]);
 
