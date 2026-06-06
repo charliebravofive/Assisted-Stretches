@@ -1566,15 +1566,29 @@ function getPageFromHash() {
 
 // ─── APP ─────────────────────────────────────────────────────
 export default function App() {
-  const [page, setPage] = useState(getPageFromHash);
+  // Always start on home page — clear any stale hash from the URL on first load
+  const [page, setPage] = useState(PAGES.home);
   const [bookingConfig, setBookingConfig] = useState(null);
   const [contactOpen, setContactOpen] = useState(false);
   const scrollRef = useRef(null);
 
+  // On mount: strip any leftover hash so the URL is clean
+  useEffect(() => {
+    if (window.location.hash) {
+      history.replaceState(null, "", window.location.pathname);
+    }
+    // Ensure scroll is at top on iOS (scrollTop on a div can be ignored)
+    window.scrollTo(0, 0);
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, []);
+
   const changePage = (p) => {
     setPage(p);
     window.location.hash = p === PAGES.home ? "" : `/${p}`;
-    setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
+    setTimeout(() => {
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }, 0);
   };
 
   // Handle browser back / forward
@@ -1585,7 +1599,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
+    setTimeout(() => {
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }, 0);
   }, [page]);
   const openBooking = (product, initialStep) => setBookingConfig({ product: product || PRODUCTS[0], initialStep });
   const openGiftCardBooking = () => setBookingConfig({ product: null, initialStep: 3 });
