@@ -204,6 +204,9 @@ const globalStyles = `
     /* About hero: drop fixed height */
     .about-hero-section { height: auto !important; padding-top: 32px !important; padding-bottom: 32px !important; }
 
+    /* Practitioner photo: remove the large top margin used for desktop alignment */
+    .practitioner-photo-wrap { margin-top: 0 !important; }
+
     /* Reduce section vertical padding */
     section { padding-top: 36px !important; padding-bottom: 36px !important; }
 
@@ -956,7 +959,7 @@ function AboutPage({ onBook }) {
             <div className="desktop-about-image" style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden", flexShrink: 0 }}>
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
-            <div style={{ textAlign: "center", marginTop: 170 }}>
+            <div className="practitioner-photo-wrap" style={{ textAlign: "center", marginTop: 170 }}>
               <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "25%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
               <div style={{ marginTop: 8, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
             </div>
