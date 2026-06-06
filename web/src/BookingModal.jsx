@@ -10,6 +10,11 @@ const stripePromise = STRIPE_KEY && STRIPE_KEY !== "pk_test_placeholder"
   : null;
 const DEMO_MODE = !stripePromise;
 
+// Consistent date format for session_date — always zero-padded DD/MM/YYYY
+// so it matches exactly what the availability endpoint queries against.
+const SESSION_DATE_OPTS = { day: "2-digit", month: "2-digit", year: "numeric" };
+const fmtSessionDate = (d) => d?.toLocaleDateString("en-AU", SESSION_DATE_OPTS) ?? "";
+
 const MONTH_NAMES = ["January","February","March","April","May","June",
   "July","August","September","October","November","December"];
 const DAY_LABELS  = ["Su","Mo","Tu","We","Th","Fr","Sa"];
@@ -797,7 +802,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
           body: JSON.stringify({
             product_id: isGiftFlow ? "gift-session" : booking.product?.id,
             ...(!isGiftFlow && booking.date && booking.time ? {
-              session_date: booking.date.toLocaleDateString("en-AU"),
+              session_date: fmtSessionDate(booking.date),
               session_time: booking.time,
             } : {}),
           }),
@@ -848,7 +853,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
               first_name: booking.contact.firstName, last_name: booking.contact.lastName,
               email: booking.contact.email, phone: booking.contact.phone,
               product_id:   booking.product?.id,
-              session_date: booking.date?.toLocaleDateString("en-AU"),
+              session_date: fmtSessionDate(booking.date),
               session_time: booking.time,
               notes:        booking.contact.notes,
               stripe_payment_id: paymentIntent.id,
@@ -879,7 +884,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
           product_id: isGiftFlow ? 'gift-session' : booking.product?.id,
           // Pass slot details so server can verify availability before charging
           ...(!isGiftFlow && booking.date && booking.time ? {
-            session_date: booking.date.toLocaleDateString("en-AU"),
+            session_date: fmtSessionDate(booking.date),
             session_time: booking.time,
           } : {}),
         }),
@@ -924,7 +929,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
             first_name: booking.contact.firstName, last_name: booking.contact.lastName,
             email: booking.contact.email, phone: booking.contact.phone,
             product_id: booking.product?.id,
-            session_date: booking.date?.toLocaleDateString("en-AU"),
+            session_date: fmtSessionDate(booking.date),
             session_time: booking.time, notes: booking.contact.notes,
             stripe_payment_id: paymentIntent.id,
           }),
@@ -1042,7 +1047,7 @@ function DemoPaymentForm({ booking, onSuccess, isGiftFlow }) {
       try {
         await fetch("/api/bookings", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ first_name: booking.contact.firstName, last_name: booking.contact.lastName, email: booking.contact.email, phone: booking.contact.phone, product_id: booking.product?.id, session_date: booking.date?.toLocaleDateString("en-AU"), session_time: booking.time, notes: booking.contact.notes }),
+          body: JSON.stringify({ first_name: booking.contact.firstName, last_name: booking.contact.lastName, email: booking.contact.email, phone: booking.contact.phone, product_id: booking.product?.id, session_date: fmtSessionDate(booking.date), session_time: booking.time, notes: booking.contact.notes }),
         });
       } catch (_) {}
     }
@@ -1270,7 +1275,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   // Fetch taken slots (including active reservations) whenever date changes
   const fetchAvailability = (d) => {
     if (!d) { setTakenSlots([]); return; }
-    const ddmmyyyy = d.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const ddmmyyyy = fmtSessionDate(d);
     fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`)
       .then(r => r.json())
       .then(data => {
