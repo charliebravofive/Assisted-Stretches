@@ -14,7 +14,6 @@ const PAGES = {
   tenPack: "10-pack",
   giftCards: "gift-cards",
   faq: "faq",
-  queries: "queries",
   contact: "contact",
 };
 
@@ -445,7 +444,6 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
     { label: "Benefits",    type: "page",   target: PAGES.benefits },
     { label: "About",       type: "page",   target: PAGES.about },
     { label: "FAQs",        type: "page",   target: PAGES.faq },
-    { label: "Queries",     type: "page",   target: PAGES.queries },
     { label: "Contact",     type: "page",   target: PAGES.contact },
   ];
 
@@ -954,14 +952,14 @@ function AboutPage({ onBook }) {
               </p>
             </div>
           </div>
-          <div className="fade-in delay-3" style={{ opacity: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-            <div className="desktop-about-image" style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden" }}>
+          <div className="fade-in delay-3" style={{ opacity: 0, display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
+            <div className="desktop-about-image" style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden", flexShrink: 0 }}>
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
-            <div style={{ marginTop: 80, textAlign: "center" }}>
-              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "50%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
+            <div style={{ textAlign: "center", marginTop: 170 }}>
+              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "25%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
+              <div style={{ marginTop: 8, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
             </div>
-            <div style={{ textAlign: "center", marginTop: 12, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
           </div>
         </div>
       </section>
@@ -1510,30 +1508,6 @@ function ContactModal({ isOpen, onClose }) {
   );
 }
 
-// ─── QUERIES PAGE ────────────────────────────────────────────
-function QueriesPage() {
-  usePageMeta({
-    title: "Ask a Question | Assisted Stretches Brisbane",
-    description: "Have a question about assisted stretching? Ask us here and we'll reply within one business day.",
-    path: "queries",
-  });
-  return (
-    <Section style={{ paddingTop: 40 }}>
-      <div style={{ maxWidth: 560 }}>
-        <div className="fade-up" style={{ opacity: 0 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>ASK US ANYTHING</div>
-        </div>
-        <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(30px, 4.5vw, 46px)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", marginBottom: 10, opacity: 0 }}>
-          Got a question?
-        </h1>
-        <p className="fade-up delay-2" style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-secondary)", marginBottom: 32, opacity: 0 }}>
-          Ask us anything about assisted stretching — technique, what to expect, health fund cover, or booking. We'll reply to your email within one business day.
-        </p>
-        <FaqChat />
-      </div>
-    </Section>
-  );
-}
 
 // ─── FAQ PAGE ────────────────────────────────────────────────
 function FaqPage({ onBook }) {
@@ -1629,7 +1603,6 @@ export default function App() {
         {page === PAGES.fivePack && <SessionPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.tenPack && <TenPackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.faq && <FaqPage onBook={openBooking} />}
-        {page === PAGES.queries && <QueriesPage />}
         {page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
         <StickyCTA page={page} onBook={openBooking} />
       </div>
