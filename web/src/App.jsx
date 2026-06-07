@@ -955,7 +955,7 @@ function AboutPage({ onBook }) {
               </p>
             </div>
           </div>
-          <div className="fade-in delay-3" style={{ opacity: 0, display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
+          <div className="fade-in delay-3" style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
             <div className="desktop-about-image" style={{ borderRadius: 14, height: "min(35vh, 280px)", overflow: "hidden", flexShrink: 0 }}>
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
