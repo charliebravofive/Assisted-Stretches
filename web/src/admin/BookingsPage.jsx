@@ -24,14 +24,18 @@ function StatusBadge({ status }) {
   );
 }
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function formatDate(dateStr) {
   if (!dateStr) return '—';
+  // Stored as DD/MM/YYYY
+  if (dateStr.includes('/')) {
+    const [d, m, y] = dateStr.split('/');
+    const mon = MONTHS[parseInt(m, 10) - 1];
+    return mon ? `${parseInt(d, 10)} ${mon} ${y}` : dateStr;
+  }
+  // Fallback for ISO strings (created_at etc.)
   try {
-    // Dates stored as DD/MM/YYYY — parse manually to avoid Invalid Date
-    const parts = dateStr.includes('/') ? dateStr.split('/') : null;
-    const d = parts
-      ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`)
-      : new Date(dateStr + 'T00:00:00');
+    const d = new Date(dateStr);
     return isNaN(d) ? dateStr : d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
   } catch { return dateStr; }
 }
