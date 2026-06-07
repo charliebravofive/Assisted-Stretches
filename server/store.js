@@ -119,6 +119,13 @@ const store = {
       save();
       return data.clients[idx];
     },
+    delete(id) {
+      const idx = data.clients.findIndex(c => c.id === Number(id));
+      if (idx === -1) return false;
+      data.clients.splice(idx, 1);
+      save();
+      return true;
+    },
   },
 
   enquiries: {

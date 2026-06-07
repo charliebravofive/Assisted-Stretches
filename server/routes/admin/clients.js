@@ -39,4 +39,11 @@ router.patch('/:id', (req, res) => {
   res.json(client);
 });
 
+// DELETE /:id — permanently remove a client record
+router.delete('/:id', (req, res) => {
+  const ok = store.clients.delete(Number(req.params.id));
+  if (!ok) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
 module.exports = router;

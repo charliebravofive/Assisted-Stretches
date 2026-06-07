@@ -41,4 +41,5 @@ export async function exportBookings() {
 }
 
 export const updateClient = (id, data) => req(`/api/admin/clients/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+export const deleteClient = (id) => req(`/api/admin/clients/${id}`, { method: 'DELETE' });
 export const resendGiftCard = (id) => req(`/api/admin/gift-cards/${id}/resend`, { method: 'POST' });

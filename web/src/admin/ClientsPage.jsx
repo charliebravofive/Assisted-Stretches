@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getClients, getClient, updateClient } from './adminApi.js';
+import { getClients, getClient, updateClient, deleteClient } from './adminApi.js';
 
 const STATUS_COLORS = {
   confirmed: { bg: '#dcfce7', color: '#166534' },
@@ -35,6 +35,8 @@ export default function ClientsPage() {
   const [editingId, setEditingId] = useState(null);
   const [editFields, setEditFields] = useState({});
   const [editSaving, setEditSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   function load() {
     setLoading(true);
@@ -69,6 +71,20 @@ export default function ClientsPage() {
       phone: client.phone || '',
       admin_note: client.admin_note || '',
     });
+  }
+
+  async function handleDelete(clientId) {
+    setDeletingId(clientId);
+    try {
+      const result = await deleteClient(clientId);
+      if (result && !result.error) {
+        setClients(prev => prev.filter(c => c.id !== clientId));
+        setExpandedId(null);
+        setConfirmDeleteId(null);
+      }
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   async function saveEdit(clientId) {
@@ -185,12 +201,33 @@ export default function ClientsPage() {
                                     </div>
                                   ) : (
                                     <div style={{ marginBottom: 16 }}>
-                                      <button onClick={() => startEdit(client)} style={{ padding: '7px 14px', background: '#fff', color: '#1a1816', border: '1px solid #d4c4a8', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
-                                        Edit Client
-                                      </button>
-                                      {detail.admin_note && (
-                                        <span style={{ marginLeft: 12, fontSize: 13, color: '#666', fontStyle: 'italic' }}>Note: {detail.admin_note}</span>
-                                      )}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                        <button onClick={() => startEdit(client)} style={{ padding: '7px 14px', background: '#fff', color: '#1a1816', border: '1px solid #d4c4a8', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                          Edit Client
+                                        </button>
+                                        {confirmDeleteId === client.id ? (
+                                          <>
+                                            <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 600 }}>Delete this client?</span>
+                                            <button
+                                              onClick={() => handleDelete(client.id)}
+                                              disabled={deletingId === client.id}
+                                              style={{ padding: '7px 14px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+                                            >
+                                              {deletingId === client.id ? 'Deleting…' : 'Yes, delete'}
+                                            </button>
+                                            <button onClick={() => setConfirmDeleteId(null)} style={{ padding: '7px 14px', background: '#fff', color: '#1a1816', border: '1px solid #d4c4a8', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                              Cancel
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <button onClick={() => setConfirmDeleteId(client.id)} style={{ padding: '7px 14px', background: '#fff', color: '#dc2626', border: '1px solid #dc2626', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                            Delete Client
+                                          </button>
+                                        )}
+                                        {detail.admin_note && (
+                                          <span style={{ fontSize: 13, color: '#666', fontStyle: 'italic' }}>Note: {detail.admin_note}</span>
+                                        )}
+                                      </div>
                                     </div>
                                   )}
 
