@@ -4,7 +4,7 @@ const stripe       = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const store        = require('../store');
 const reservations = require('../lib/slotReservations');
 
-const PRICES = { 'session': 100, 'gift-session': 100 }; // cents — $1 TEST MODE (change back to 5000/12500 for production)
+const PRICES = { 'session': 5000, 'gift-session': 5000 }; // cents — $50 deposit
 
 const STRIPE_PRODUCT_IDS = {
   'session':      'prod_UZKORgA5V4FhvL',
