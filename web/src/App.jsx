@@ -763,7 +763,9 @@ function Footer({ onGiftBook, setPage }) {
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", marginBottom: 18, opacity: 0.4 }}>CONNECT</div>
-            <div style={{ fontSize: 13.5, lineHeight: 2.6, opacity: 0.6 }}><div>Instagram</div><div>Google Reviews</div><div>Contact</div></div>
+            <div style={{ fontSize: 13.5, lineHeight: 2.6, opacity: 0.6, display: "flex", flexDirection: "column" }}>
+              <a href="https://www.instagram.com/assistedstretches" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>Instagram</a>
+            </div>
           </div>
         </div>
         <div style={{ borderTop: "1px solid rgba(212,196,168,0.15)", paddingTop: 28, fontSize: 12.5, opacity: 0.35, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
