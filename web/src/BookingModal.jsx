@@ -1381,8 +1381,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const giftBooking = { product: giftProduct, date: giftDate, time: giftTime, contact: giftContact, sessions: giftSessions };
   const regBooking  = { product, date, time, contact, waiver };
 
-  const handleGiftPaymentSuccess = (_method, code) => { setGiftCode(code); setGiftStep(2); };
-  const handleRegPaymentSuccess  = async () => { setDone(true); };
+  const handleGiftPaymentSuccess = (_method, code) => {
+    if (typeof gtag !== "undefined") gtag("event", "purchase", { currency: "AUD", value: 50, transaction_id: Date.now().toString(), items: [{ item_name: "Gift Card" }] });
+    setGiftCode(code); setGiftStep(2);
+  };
+  const handleRegPaymentSuccess = async () => {
+    if (typeof gtag !== "undefined") gtag("event", "purchase", { currency: "AUD", value: 50, transaction_id: Date.now().toString(), items: [{ item_name: product?.label || "Session" }] });
+    setDone(true);
+  };
 
   const handleNext = async () => {
     if (isGiftCardFlow) {
