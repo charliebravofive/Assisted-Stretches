@@ -27,7 +27,12 @@ function StatusBadge({ status }) {
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   try {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+    // Dates stored as DD/MM/YYYY — parse manually to avoid Invalid Date
+    const parts = dateStr.includes('/') ? dateStr.split('/') : null;
+    const d = parts
+      ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`)
+      : new Date(dateStr + 'T00:00:00');
+    return isNaN(d) ? dateStr : d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
   } catch { return dateStr; }
 }
 
