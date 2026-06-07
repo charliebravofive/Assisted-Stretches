@@ -763,6 +763,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
   const [useGift,        setUseGift]        = useState(false);
   const [paymentRequest, setPaymentRequest] = useState(null);
   const [prAvailable,    setPrAvailable]    = useState(false);
+  const [showCard,       setShowCard]       = useState(false);
 
   // ── Apple Pay / Google Pay via Stripe Payment Request ──────
   useEffect(() => {
@@ -992,7 +993,7 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
       )}
       {!useGift && (
         <>
-          {/* ── Apple Pay / Google Pay button ── */}
+          {/* ── Apple Pay / Google Pay button (primary) ── */}
           {prAvailable && paymentRequest && (
             <div style={{ marginBottom: 16 }}>
               <PaymentRequestButtonElement
@@ -1002,30 +1003,47 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
                     paymentRequestButton: {
                       type:   "default",
                       theme:  "dark",
-                      height: "48px",
+                      height: "52px",
                     },
                   },
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0 4px" }}>
-                <div style={{ flex: 1, height: 1, background: C.boneDark }} />
-                <span style={{ fontSize: 12, color: C.textSec, fontWeight: 500, letterSpacing: "0.06em" }}>OR PAY BY CARD</span>
-                <div style={{ flex: 1, height: 1, background: C.boneDark }} />
+              <div style={{ textAlign: "center", marginTop: 14 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCard(v => !v)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: C.textSec, textDecoration: "underline", padding: 0 }}
+                >
+                  {showCard ? "Hide card details" : "Pay by card instead"}
+                </button>
               </div>
             </div>
           )}
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: C.clay, letterSpacing: "0.08em", marginBottom: 8, display: "block" }}>CARD DETAILS</label>
-            <div style={{ padding: "14px", border: `1.5px solid ${C.boneDark}`, borderRadius: 8, background: C.white }}>
-              <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: "15px", color: C.forest, fontFamily: "'DM Sans', sans-serif", "::placeholder": { color: C.sand } }, invalid: { color: "#e53e3e" } } }} />
-            </div>
-          </div>
-          {DEMO_MODE && <div style={{ background: "#FFF8E7", border: "1px solid #F0C040", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7A5500", marginBottom: 16 }}><strong>Demo mode</strong> — add your Stripe key to <code>.env</code> to enable real payments.</div>}
-          {error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
-          <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
-            {loading ? "Processing…" : "Confirm & Pay $1 Deposit"}
-          </button>
+          {/* ── Card form — always visible when Apple Pay unavailable, toggleable otherwise ── */}
+          {(!prAvailable || showCard) && (
+            <>
+              {prAvailable && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 16px" }}>
+                  <div style={{ flex: 1, height: 1, background: C.boneDark }} />
+                  <span style={{ fontSize: 12, color: C.textSec, fontWeight: 500, letterSpacing: "0.06em" }}>PAY BY CARD</span>
+                  <div style={{ flex: 1, height: 1, background: C.boneDark }} />
+                </div>
+              )}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: C.clay, letterSpacing: "0.08em", marginBottom: 8, display: "block" }}>CARD DETAILS</label>
+                <div style={{ padding: "14px", border: `1.5px solid ${C.boneDark}`, borderRadius: 8, background: C.white }}>
+                  <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: "15px", color: C.forest, fontFamily: "'DM Sans', sans-serif", "::placeholder": { color: C.sand } }, invalid: { color: "#e53e3e" } } }} />
+                </div>
+              </div>
+              {DEMO_MODE && <div style={{ background: "#FFF8E7", border: "1px solid #F0C040", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7A5500", marginBottom: 16 }}><strong>Demo mode</strong> — add your Stripe key to <code>.env</code> to enable real payments.</div>}
+              {error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
+              <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
+                {loading ? "Processing…" : "Confirm & Pay $1 Deposit"}
+              </button>
+            </>
+          )}
+          {!prAvailable && error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
         </>
       )}
       <p style={{ fontSize: 12, color: C.textSec, textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>🔒 Secured by Stripe · Cancel or reschedule up to 24 hours before</p>
