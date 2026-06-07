@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, PaymentRequestButtonElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { PRODUCTS } from "./products.js";
 
 // ─── CONFIG ──────────────────────────────────────────────────
@@ -754,170 +754,40 @@ function GiftCodePanel({ onSuccess, booking }) {
   );
 }
 
-// ─── PAYMENT FORM (Stripe) ────────────────────────────────────
-function PaymentForm({ booking, onSuccess, isGiftFlow }) {
+// ─── PAYMENT FORM (Stripe PaymentElement — handles Apple Pay, Google Pay, card) ──
+function PaymentForm({ booking, onSuccess, isGiftFlow, clientSecret }) {
   const stripe   = useStripe();
   const elements = useElements();
-  const [loading,        setLoading]        = useState(false);
-  const [error,          setError]          = useState(null);
-  const [useGift,        setUseGift]        = useState(false);
-  const [paymentRequest, setPaymentRequest] = useState(null);
-  const [prAvailable,    setPrAvailable]    = useState(false);
-  const [showCard,       setShowCard]       = useState(false);
-
-  // ── Apple Pay / Google Pay via Stripe Payment Request ──────
-  useEffect(() => {
-    if (!stripe) return;
-
-    // Amount in cents
-    const depositCents = isGiftFlow
-      ? (booking.product?.price ?? 125) * 100   // full product price for gift cards
-      : 100;   // $1 TEST — change back to 5000
-
-    const label = isGiftFlow
-      ? (booking.product?.label ?? "Gift Card")
-      : "Session Deposit";
-
-    const pr = stripe.paymentRequest({
-      country:  "AU",
-      currency: "aud",
-      total: { label, amount: depositCents },
-      requestPayerName:  true,
-      requestPayerEmail: true,
-      requestPayerPhone: true,
-    });
-
-    pr.canMakePayment().then(result => {
-      if (result) {
-        setPaymentRequest(pr);
-        setPrAvailable(true);
-      }
-    });
-
-    pr.on("paymentmethod", async ev => {
-      setLoading(true); setError(null);
-      try {
-        // 1. Create PaymentIntent (also validates slot is still free)
-        const intentRes = await fetch("/api/payments/intent", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            product_id: isGiftFlow ? "gift-session" : booking.product?.id,
-            ...(!isGiftFlow && booking.date && booking.time ? {
-              session_date: fmtSessionDate(booking.date),
-              session_time: booking.time,
-            } : {}),
-          }),
-        });
-        const intentData = await intentRes.json();
-        const { clientSecret, error: intentErr } = intentData;
-        if (intentErr) throw new Error(intentErr);
-
-        // 2. Confirm with the payment method from the wallet sheet
-        const { error: confirmErr, paymentIntent } = await stripe.confirmCardPayment(
-          clientSecret,
-          { payment_method: ev.paymentMethod.id },
-          { handleActions: false }
-        );
-        if (confirmErr) { ev.complete("fail"); throw new Error(confirmErr.message); }
-
-        // 3. Complete the sheet (close Apple Pay / Google Pay UI)
-        ev.complete("success");
-
-        if (paymentIntent.status === "requires_action") {
-          const { error: actionErr } = await stripe.confirmCardPayment(clientSecret);
-          if (actionErr) throw new Error(actionErr.message);
-        }
-
-        // 4. Record booking / gift card
-        let giftCode = null;
-        if (isGiftFlow) {
-          const res = await fetch("/api/gift-cards/purchase", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              product_id:           booking.product?.id,
-              purchaser_first_name: booking.contact.firstName,
-              purchaser_last_name:  booking.contact.lastName,
-              purchaser_email:      booking.contact.email,
-              purchaser_phone:      booking.contact.phone,
-              recipient_name:       booking.contact.recipientName  || null,
-              recipient_email:      booking.contact.recipientEmail || null,
-              gift_message:         booking.contact.notes          || null,
-              stripe_payment_id:    paymentIntent.id,
-            }),
-          });
-          const data = await res.json();
-          giftCode = data.code || null;
-        } else {
-          await fetch("/api/bookings", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              first_name: booking.contact.firstName, last_name: booking.contact.lastName,
-              email: booking.contact.email, phone: booking.contact.phone,
-              product_id:   booking.product?.id,
-              session_date: fmtSessionDate(booking.date),
-              session_time: booking.time,
-              notes:        booking.contact.notes,
-              stripe_payment_id: paymentIntent.id,
-            }),
-          });
-        }
-        onSuccess("stripe", giftCode);
-      } catch (err) {
-        setError(err.message || "Payment failed.");
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    return () => { pr.off("paymentmethod"); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stripe]);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+  const [useGift, setUseGift] = useState(false);
 
   const handleSubmit = async e => {
     e.preventDefault();
     if (!stripe || !elements) return;
     setLoading(true); setError(null);
     try {
-      // 0. Pre-flight: re-check availability right before charging the card
-      //    so the user gets an instant, clear message if the slot was taken
-      //    while they were filling in their details.
+      // Pre-flight: verify slot still free before charging
       if (!isGiftFlow && booking.date && booking.time) {
         const ddmmyyyy = fmtSessionDate(booking.date);
-        const avRes = await fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`);
-        const avData = await avRes.json().catch(() => ({}));
+        const avData = await fetch(`/api/bookings/availability?date=${encodeURIComponent(ddmmyyyy)}`)
+          .then(r => r.json()).catch(() => ({}));
         const nowTaken = Array.isArray(avData.taken) ? avData.taken : [];
         if (nowTaken.includes(booking.time)) {
           throw new Error("Sorry, that time slot was just booked by someone else. Please go back and choose a different time.");
         }
       }
 
-      // 1. Create PaymentIntent on server (also validates slot is still free)
-      const intentRes = await fetch("/api/payments/intent", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_id: isGiftFlow ? 'gift-session' : booking.product?.id,
-          // Pass slot details so server can verify availability before charging
-          ...(!isGiftFlow && booking.date && booking.time ? {
-            session_date: fmtSessionDate(booking.date),
-            session_time: booking.time,
-          } : {}),
-        }),
-      });
-      const intentText = await intentRes.text();
-      if (!intentText) throw new Error("Server returned an empty response. Please check the server is running.");
-      let intentData;
-      try { intentData = JSON.parse(intentText); } catch { throw new Error("Server error: " + intentText.slice(0, 120)); }
-      const { clientSecret, paymentIntentId, error: intentErr } = intentData;
-      if (intentErr) throw new Error(intentErr);
-
-      // 2. Confirm card payment with Stripe
-      const { error: stripeErr, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card: elements.getElement(CardElement) },
+      // Confirm payment — PaymentElement handles Apple Pay / Google Pay / card
+      const { error: stripeErr, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: window.location.href },
+        redirect: "if_required",
       });
       if (stripeErr) throw new Error(stripeErr.message);
       if (paymentIntent.status !== "succeeded") throw new Error("Payment not completed.");
 
-      // 3. Record booking / gift card on server
+      // Record booking / gift card
       let giftCode = null;
       if (isGiftFlow) {
         const res = await fetch("/api/gift-cards/purchase", {
@@ -928,10 +798,10 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
             purchaser_last_name:  booking.contact.lastName,
             purchaser_email:      booking.contact.email,
             purchaser_phone:      booking.contact.phone,
-            recipient_name:  booking.contact.recipientName  || null,
-            recipient_email: booking.contact.recipientEmail || null,
-            gift_message:    booking.contact.notes          || null,
-            stripe_payment_id: paymentIntent.id,
+            recipient_name:       booking.contact.recipientName  || null,
+            recipient_email:      booking.contact.recipientEmail || null,
+            gift_message:         booking.contact.notes          || null,
+            stripe_payment_id:    paymentIntent.id,
           }),
         });
         const data = await res.json();
@@ -942,21 +812,19 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
           body: JSON.stringify({
             first_name: booking.contact.firstName, last_name: booking.contact.lastName,
             email: booking.contact.email, phone: booking.contact.phone,
-            product_id: booking.product?.id,
+            product_id:   booking.product?.id,
             session_date: fmtSessionDate(booking.date),
             session_time: booking.time, notes: booking.contact.notes,
             stripe_payment_id: paymentIntent.id,
           }),
         });
-        // Persist this booking in localStorage so the slot stays grayed out
-        // immediately for this client, even before the next server poll.
+        // Persist to localStorage so slot is grayed out immediately
         try {
           const _key = `${fmtSessionDate(booking.date)}||${booking.time}`;
           const _existing = JSON.parse(localStorage.getItem("as_confirmed_bookings") || "[]");
           if (!_existing.includes(_key))
             localStorage.setItem("as_confirmed_bookings", JSON.stringify([..._existing, _key]));
         } catch (_) {}
-        // Submit waiver separately (non-fatal)
         if (booking.waiver?.signature) {
           fetch("/api/waivers", {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -993,57 +861,14 @@ function PaymentForm({ booking, onSuccess, isGiftFlow }) {
       )}
       {!useGift && (
         <>
-          {/* ── Apple Pay / Google Pay button (primary) ── */}
-          {prAvailable && paymentRequest && (
-            <div style={{ marginBottom: 16 }}>
-              <PaymentRequestButtonElement
-                options={{
-                  paymentRequest,
-                  style: {
-                    paymentRequestButton: {
-                      type:   "default",
-                      theme:  "dark",
-                      height: "52px",
-                    },
-                  },
-                }}
-              />
-              <div style={{ textAlign: "center", marginTop: 14 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowCard(v => !v)}
-                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: C.textSec, textDecoration: "underline", padding: 0 }}
-                >
-                  {showCard ? "Hide card details" : "Pay by card instead"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── Card form — always visible when Apple Pay unavailable, toggleable otherwise ── */}
-          {(!prAvailable || showCard) && (
-            <>
-              {prAvailable && (
-                <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 16px" }}>
-                  <div style={{ flex: 1, height: 1, background: C.boneDark }} />
-                  <span style={{ fontSize: 12, color: C.textSec, fontWeight: 500, letterSpacing: "0.06em" }}>PAY BY CARD</span>
-                  <div style={{ flex: 1, height: 1, background: C.boneDark }} />
-                </div>
-              )}
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: C.clay, letterSpacing: "0.08em", marginBottom: 8, display: "block" }}>CARD DETAILS</label>
-                <div style={{ padding: "14px", border: `1.5px solid ${C.boneDark}`, borderRadius: 8, background: C.white }}>
-                  <CardElement options={{ hidePostalCode: true, style: { base: { fontSize: "15px", color: C.forest, fontFamily: "'DM Sans', sans-serif", "::placeholder": { color: C.sand } }, invalid: { color: "#e53e3e" } } }} />
-                </div>
-              </div>
-              {DEMO_MODE && <div style={{ background: "#FFF8E7", border: "1px solid #F0C040", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#7A5500", marginBottom: 16 }}><strong>Demo mode</strong> — add your Stripe key to <code>.env</code> to enable real payments.</div>}
-              {error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
-              <button type="submit" disabled={loading} style={{ ...btn("primary"), width: "100%", opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
-                {loading ? "Processing…" : "Confirm & Pay $1 Deposit"}
-              </button>
-            </>
-          )}
-          {!prAvailable && error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
+          {/* PaymentElement automatically shows Apple Pay, Google Pay, card, etc. */}
+          <div style={{ marginBottom: 20 }}>
+            <PaymentElement options={{ layout: "tabs" }} />
+          </div>
+          {error && <div style={{ color: "#c53030", fontSize: 13.5, marginBottom: 12 }}>{error}</div>}
+          <button type="submit" disabled={loading || !stripe} style={{ ...btn("primary"), width: "100%", opacity: (loading || !stripe) ? 0.7 : 1, cursor: (loading || !stripe) ? "default" : "pointer", fontSize: 16, padding: "16px" }}>
+            {loading ? "Processing…" : "Confirm & Pay $1 Deposit"}
+          </button>
         </>
       )}
       <p style={{ fontSize: 12, color: C.textSec, textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>🔒 Secured by Stripe · Cancel or reschedule up to 24 hours before</p>
@@ -1274,8 +1099,9 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const [time,       setTime]      = useState(null);
   const [contact,    setContact]   = useState({});
   const [waiver,     setWaiver]    = useState({});
-  const [done,       setDone]      = useState(false);
-  const [takenSlots, setTakenSlots] = useState([]);
+  const [done,         setDone]        = useState(false);
+  const [takenSlots,   setTakenSlots]  = useState([]);
+  const [clientSecret, setClientSecret] = useState(null);
 
   // Gift card flow state (giftStep 0–2)
   // 0=Details/denomination, 1=Payment, 2=Confirm
@@ -1381,6 +1207,34 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   const giftBooking = { product: giftProduct, date: giftDate, time: giftTime, contact: giftContact, sessions: giftSessions };
   const regBooking  = { product, date, time, contact, waiver };
 
+  // Fetch PaymentIntent clientSecret when the payment step loads so
+  // PaymentElement can render Apple Pay / Google Pay / card upfront.
+  const onPaymentStep = !DEMO_MODE && (
+    (!isGiftCardFlow && step === 5) || (isGiftCardFlow && giftStep === 1)
+  );
+  const currentBooking = isGiftCardFlow
+    ? { product: giftProduct, date: giftDate, time: giftTime, contact: giftContact }
+    : { product, date, time };
+
+  useEffect(() => {
+    if (!onPaymentStep) return;
+    setClientSecret(null);
+    fetch("/api/payments/intent", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_id: isGiftCardFlow ? "gift-session" : currentBooking.product?.id,
+        ...(!isGiftCardFlow && currentBooking.date && currentBooking.time ? {
+          session_date: fmtSessionDate(currentBooking.date),
+          session_time: currentBooking.time,
+        } : {}),
+      }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.clientSecret) setClientSecret(d.clientSecret); })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onPaymentStep]);
+
   const handleGiftPaymentSuccess = (_method, code) => { setGiftCode(code); setGiftStep(2); };
   const handleRegPaymentSuccess  = async () => { setDone(true); };
 
@@ -1412,11 +1266,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     }
   };
 
+  const activeBooking = isGiftCardFlow ? giftBooking : regBooking;
   const paymentNode = DEMO_MODE
-    ? <DemoPaymentForm booking={isGiftCardFlow ? giftBooking : regBooking} onSuccess={isGiftCardFlow ? handleGiftPaymentSuccess : handleRegPaymentSuccess} isGiftFlow={isGiftCardFlow} />
-    : <Elements stripe={stripePromise} options={{ appearance: { theme: "stripe" } }}>
-        <PaymentForm booking={isGiftCardFlow ? giftBooking : regBooking} onSuccess={isGiftCardFlow ? handleGiftPaymentSuccess : handleRegPaymentSuccess} isGiftFlow={isGiftCardFlow} />
-      </Elements>;
+    ? <DemoPaymentForm booking={activeBooking} onSuccess={isGiftCardFlow ? handleGiftPaymentSuccess : handleRegPaymentSuccess} isGiftFlow={isGiftCardFlow} />
+    : !clientSecret
+      ? <div style={{ textAlign: "center", padding: "40px 0", color: C.textSec, fontSize: 14 }}>Preparing payment…</div>
+      : <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "stripe", variables: { colorPrimary: "#3d5a4c", borderRadius: "8px" } } }}>
+          <PaymentForm booking={activeBooking} onSuccess={isGiftCardFlow ? handleGiftPaymentSuccess : handleRegPaymentSuccess} isGiftFlow={isGiftCardFlow} clientSecret={clientSecret} />
+        </Elements>;
 
   const isDone = isGiftCardFlow ? giftDone : done;
   // (customer type / waiver pre-steps removed — collected separately or at studio)
