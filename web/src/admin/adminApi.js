@@ -42,4 +42,12 @@ export async function exportBookings() {
 
 export const updateClient = (id, data) => req(`/api/admin/clients/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const deleteClient = (id) => req(`/api/admin/clients/${id}`, { method: 'DELETE' });
+export async function exportClients() {
+  const res = await fetch('/api/admin/clients/export', { credentials: 'include' });
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'clients.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
 export const resendGiftCard = (id) => req(`/api/admin/gift-cards/${id}/resend`, { method: 'POST' });

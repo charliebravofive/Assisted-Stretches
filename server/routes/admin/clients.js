@@ -2,6 +2,20 @@ const express = require('express');
 const router = express.Router();
 const store = require('../../store');
 
+// GET /export — CSV download (must be before /:id)
+router.get('/export', (req, res) => {
+  const clients = store.clients.list();
+  const esc = v => `"${String(v || '').replace(/"/g, '""')}"`;
+  const header = 'ID,First Name,Last Name,Email,Phone,Source,Admin Note,Created At\n';
+  const rows = clients.map(c => [
+    c.id, esc(c.first_name), esc(c.last_name), esc(c.email), esc(c.phone),
+    esc(c.source), esc(c.admin_note), esc(c.created_at),
+  ].join(',')).join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="clients.csv"');
+  res.send(header + rows);
+});
+
 // GET / — list clients sorted by created_at desc
 router.get('/', (req, res) => {
   let clients = store.clients.list();

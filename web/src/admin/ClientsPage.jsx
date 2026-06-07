@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getClients, getClient, updateClient, deleteClient } from './adminApi.js';
+import { getClients, getClient, updateClient, deleteClient, exportClients } from './adminApi.js';
 
 const STATUS_COLORS = {
   confirmed: { bg: '#dcfce7', color: '#166534' },
@@ -106,7 +106,7 @@ export default function ClientsPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
         <input
           type="text"
           placeholder="Search name, email or phone…"
@@ -114,6 +114,12 @@ export default function ClientsPage() {
           onChange={e => setSearch(e.target.value)}
           style={inputStyle}
         />
+        <button
+          onClick={exportClients}
+          style={{ padding: '8px 16px', background: '#fff', color: '#1a1816', border: '1px solid #d4c4a8', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+        >
+          ↓ Export to Excel
+        </button>
       </div>
 
       {loading && <div style={{ color: '#888' }}>Loading…</div>}
