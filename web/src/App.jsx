@@ -660,19 +660,14 @@ function ReviewsSection({ reviews = REVIEWS, title, sub }) {
 function PractitionerBio() {
   return (
     <Section id="about" style={{ background: "var(--white)" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }} className="bio-grid">
-        <div style={{ textAlign: "center" }}>
-          <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "40%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
-        </div>
-        <div>
-          <SectionLabel text="Your practitioner" />
-          <p style={{ fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.45, marginBottom: 20, fontWeight: 400, fontStyle: "italic", color: "var(--forest-ink)" }}>
-            Flexibility is the foundation of movement, yet it's one of the most overlooked areas in the health and fitness industry.
-          </p>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.6, fontStyle: "italic", fontWeight: 400, color: "var(--text-secondary)" }}>
-            Clients are constantly looking for ways to move better, recover faster, and prevent injuries. I am a Certified Stretch Practitioner and work hands-on with clients that want to integrate evidence based assisted stretching techniques into their health and wellness routine.
-          </p>
-        </div>
+      <div>
+        <SectionLabel text="Your practitioner" />
+        <p style={{ fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.45, marginBottom: 20, fontWeight: 400, fontStyle: "italic", color: "var(--forest-ink)" }}>
+          Flexibility is the foundation of movement, yet it's one of the most overlooked areas in the health and fitness industry.
+        </p>
+        <p style={{ fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.6, fontStyle: "italic", fontWeight: 400, color: "var(--text-secondary)" }}>
+          Clients are constantly looking for ways to move better, recover faster, and prevent injuries. I am a Certified Stretch Practitioner and work hands-on with clients that want to integrate evidence based assisted stretching techniques into their health and wellness routine.
+        </p>
       </div>
     </Section>
   );
