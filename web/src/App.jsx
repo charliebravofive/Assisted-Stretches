@@ -15,6 +15,7 @@ const PAGES = {
   giftCards: "gift-cards",
   faq: "faq",
   contact: "contact",
+  newPatientForm: "new-patient-form",
 };
 
 // ─── SHARED DATA ────────────────────────────────────────────
@@ -447,7 +448,8 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
     { label: "Benefits",    type: "page",   target: PAGES.benefits },
     { label: "About",       type: "page",   target: PAGES.about },
     { label: "FAQs",        type: "page",   target: PAGES.faq },
-    { label: "Contact",     type: "page",   target: PAGES.contact },
+    { label: "Contact",          type: "page", target: PAGES.contact },
+    { label: "New Patient Form", type: "page", target: PAGES.newPatientForm },
   ];
 
   const handleNav = (item) => {
@@ -1563,6 +1565,208 @@ function FaqPage({ onBook }) {
   );
 }
 
+// ─── NEW PATIENT FORM PAGE ────────────────────────────────────
+function NewPatientFormPage() {
+  const canvasRef = useRef(null);
+  const drawing   = useRef(false);
+  const [form, setForm] = useState({
+    first_name: "", last_name: "", email: "", phone: "",
+    date_of_birth: "", heard_about_us: "",
+    sleep_hours: "", sleep_quality: "", water_litres: "", exercise_frequency: "",
+    exercise_types: "", exercise_ability: "", injuries: "", surgeries: "", goals: "",
+    agree_cancellation: false, agree_injuries_disclosed: false, agree_liability: false,
+    signature: null,
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.strokeStyle = "#1e2a24";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    const pos = (e) => {
+      const r = canvas.getBoundingClientRect();
+      const src = e.touches ? e.touches[0] : e;
+      return [src.clientX - r.left, src.clientY - r.top];
+    };
+    const start = (e) => { e.preventDefault(); drawing.current = true; const [x,y] = pos(e); ctx.beginPath(); ctx.moveTo(x,y); };
+    const move  = (e) => { e.preventDefault(); if (!drawing.current) return; const [x,y] = pos(e); ctx.lineTo(x,y); ctx.stroke(); };
+    const end   = ()  => { drawing.current = false; set("signature", canvas.toDataURL()); };
+    canvas.addEventListener("mousedown",  start);
+    canvas.addEventListener("mousemove",  move);
+    canvas.addEventListener("mouseup",    end);
+    canvas.addEventListener("mouseleave", end);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove",  move,  { passive: false });
+    canvas.addEventListener("touchend",   end);
+    return () => {
+      canvas.removeEventListener("mousedown",  start);
+      canvas.removeEventListener("mousemove",  move);
+      canvas.removeEventListener("mouseup",    end);
+      canvas.removeEventListener("mouseleave", end);
+      canvas.removeEventListener("touchstart", start);
+      canvas.removeEventListener("touchmove",  move);
+      canvas.removeEventListener("touchend",   end);
+    };
+  }, []);
+
+  const clearSig = () => {
+    const canvas = canvasRef.current;
+    if (canvas) canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    set("signature", null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.first_name || !form.last_name || !form.email) {
+      setError("Please fill in your first name, last name and email.");
+      return;
+    }
+    if (!form.agree_cancellation || !form.agree_injuries_disclosed || !form.agree_liability) {
+      setError("Please agree to all terms before submitting.");
+      return;
+    }
+    if (!form.signature) {
+      setError("Please sign before submitting.");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/waivers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error("Submission failed. Please try again.");
+      setDone(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inp  = { width: "100%", padding: "11px 14px", borderRadius: 8, border: "1.5px solid #d4c4a8", fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#1e2a24", background: "#fff", outline: "none", boxSizing: "border-box" };
+  const lbl  = { fontSize: 11.5, fontWeight: 600, color: "#c8856a", letterSpacing: "0.08em", marginBottom: 5, display: "block" };
+  const area = { ...inp, resize: "vertical", minHeight: 80 };
+
+  const field = (label, key, type = "text", placeholder = "") => (
+    <div style={{ marginBottom: 14 }}>
+      <label style={lbl}>{label}</label>
+      <input type={type} placeholder={placeholder} value={form[key] || ""} onChange={e => set(key, e.target.value)} style={inp} />
+    </div>
+  );
+  const textArea = (label, key, placeholder = "") => (
+    <div style={{ marginBottom: 14 }}>
+      <label style={lbl}>{label}</label>
+      <textarea placeholder={placeholder} value={form[key] || ""} onChange={e => set(key, e.target.value)} style={area} />
+    </div>
+  );
+  const check = (key, text) => (
+    <label style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 14, cursor: "pointer" }}>
+      <input type="checkbox" checked={!!form[key]} onChange={e => set(key, e.target.checked)}
+        style={{ marginTop: 3, width: 16, height: 16, accentColor: "#1e2a24", flexShrink: 0 }} />
+      <span style={{ fontSize: 13.5, color: "#1e2a24", lineHeight: 1.55 }}>{text}</span>
+    </label>
+  );
+
+  if (done) return (
+    <Section style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center", maxWidth: 480 }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: 28, fontWeight: 400, color: "#1e2a24", marginBottom: 12 }}>Form submitted!</h2>
+        <p style={{ fontSize: 16, color: "#6b7c6e", lineHeight: 1.7 }}>Thank you for completing your new patient form. We look forward to seeing you at your appointment.</p>
+      </div>
+    </Section>
+  );
+
+  return (
+    <Section style={{ paddingTop: 60, paddingBottom: 80 }}>
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <h1 style={{ fontFamily: "Georgia, serif", fontSize: 36, fontWeight: 400, color: "#1e2a24", marginBottom: 8 }}>New Patient Form</h1>
+        <p style={{ fontSize: 15, color: "#6b7c6e", marginBottom: 36, lineHeight: 1.7 }}>Please complete this form before your first appointment. All information is kept confidential.</p>
+
+        <form onSubmit={handleSubmit} noValidate>
+          {/* Contact */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16, borderBottom: "1px solid #f0ece6", paddingBottom: 8 }}>Your Details</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>{field("First Name *", "first_name", "text", "Jane")}</div>
+              <div>{field("Last Name *", "last_name", "text", "Smith")}</div>
+            </div>
+            {field("Email Address *", "email", "email", "jane@example.com")}
+            {field("Phone Number", "phone", "tel", "0400 000 000")}
+          </div>
+
+          {/* Health */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16, borderBottom: "1px solid #f0ece6", paddingBottom: 8 }}>Health &amp; Lifestyle</div>
+            {field("Date of Birth", "date_of_birth", "date")}
+            {field("How did you hear about us?", "heard_about_us", "text", "e.g. Google, Instagram, friend…")}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Hours of sleep per night?</label>
+                <input type="number" min="1" max="24" value={form.sleep_hours || ""} onChange={e => set("sleep_hours", e.target.value)} style={inp} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Sleep quality (1–10)?</label>
+                <input type="number" min="1" max="10" value={form.sleep_quality || ""} onChange={e => set("sleep_quality", e.target.value)} style={inp} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Litres of water per day?</label>
+                <input type="number" min="0" step="0.5" value={form.water_litres || ""} onChange={e => set("water_litres", e.target.value)} style={inp} />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Times you exercise per week?</label>
+                <input type="number" min="0" value={form.exercise_frequency || ""} onChange={e => set("exercise_frequency", e.target.value)} style={inp} />
+              </div>
+            </div>
+            {textArea("What type of exercise do you participate in regularly?", "exercise_types", "e.g. gym, running, yoga…")}
+            <div style={{ marginBottom: 14 }}>
+              <label style={lbl}>Rate your ability to exercise (1–10) — 1 = can't exercise, 10 = unstoppable</label>
+              <input type="number" min="1" max="10" value={form.exercise_ability || ""} onChange={e => set("exercise_ability", e.target.value)} style={inp} />
+            </div>
+            {textArea("Do you have any pre-existing injuries? If so, please explain.", "injuries", "Describe any injuries…")}
+            {textArea("Have you had any surgeries? If so, please explain and give a rough date.", "surgeries", "Describe surgeries and dates…")}
+            {textArea("What do you want to get out of stretching?", "goals", "Your goals…")}
+          </div>
+
+          {/* Agreement */}
+          <div style={{ marginBottom: 24, borderTop: "1px solid #d4c4a8", paddingTop: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Agreement</div>
+            {check("agree_cancellation", "I accept the 24hr cancellation policy and agree to pay the cancellation fee in the event I cancel within 24hrs of my appointment time.")}
+            {check("agree_injuries_disclosed", "I have notified my practitioner of all current and past injuries, pains, surgeries and treatments.")}
+            {check("agree_liability", "I understand that flexibility training may make any pre-existing injuries or conditions worse, but wish to continue with treatment and will not hold Assisted Stretches at fault for any future complications I may experience.")}
+          </div>
+
+          {/* Signature */}
+          <div style={{ marginBottom: 28 }}>
+            <label style={lbl}>Signature *</label>
+            <div style={{ border: "1.5px solid #d4c4a8", borderRadius: 8, background: "#fff", position: "relative" }}>
+              <canvas ref={canvasRef} width={600} height={120} style={{ width: "100%", height: 120, display: "block", borderRadius: 8, cursor: "crosshair", touchAction: "none" }} />
+              <button type="button" onClick={clearSig} style={{ position: "absolute", top: 8, right: 8, background: "none", border: "1px solid #d4c4a8", borderRadius: 4, padding: "2px 10px", fontSize: 12, color: "#888", cursor: "pointer" }}>Clear</button>
+            </div>
+            <p style={{ fontSize: 11.5, color: "#888", marginTop: 6 }}>Draw your signature above using your mouse or finger.</p>
+          </div>
+
+          {error && <p style={{ color: "#dc2626", fontSize: 14, marginBottom: 16 }}>{error}</p>}
+
+          <button type="submit" disabled={submitting} style={{ width: "100%", padding: "15px 24px", background: "#1e2a24", color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.7 : 1 }}>
+            {submitting ? "Submitting…" : "Submit New Patient Form"}
+          </button>
+        </form>
+      </div>
+    </Section>
+  );
+}
+
 // ─── HASH ROUTING ────────────────────────────────────────────
 function getPageFromHash() {
   const hash = window.location.hash.replace(/^#\/?/, "");
@@ -1625,6 +1829,7 @@ export default function App() {
         {page === PAGES.fivePack && <SessionPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.tenPack && <TenPackPage setPage={changePage} onBook={openBooking} />}
         {page === PAGES.faq && <FaqPage onBook={openBooking} />}
+        {page === PAGES.newPatientForm && <NewPatientFormPage />}
         {page !== PAGES.contact && <Footer onGiftBook={openGiftCardBooking} setPage={changePage} />}
         <StickyCTA page={page} onBook={openBooking} />
       </div>
