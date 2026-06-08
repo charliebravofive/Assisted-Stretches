@@ -36,7 +36,7 @@ const BENEFITS = [
   {
     tag: "RECOVERY",
     headline: "Train harder, recover faster.",
-    body: "Assisted stretching after heavy training days helps clear lactic build-up and reduces next-day stiffness. Pair it with your weekly long run, lift, or ride.",
+    body: "Assisted stretching after heavy training days helps clear lactic acid build-up and reduces next-day stiffness. Incorporate an assisted stretch session into your training regime and see how it improves your recovery.",
   },
   {
     tag: "RELEASE",
