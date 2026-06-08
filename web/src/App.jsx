@@ -902,8 +902,10 @@ function BenefitsPage({ onBook }) {
             { icon: "✦", title: "Better posture over time", body: "Regular sessions release the hip flexors, chest, and spinal muscles that desk life shortens. Most clients notice posture changes within weeks." },
           ].map((item, i) => (
             <div key={i} style={{ background: "var(--bone)", border: "1px solid var(--bone-dark)", borderRadius: 12, padding: "28px 24px" }}>
-              <div style={{ fontSize: 18, color: "var(--deep-clay)", marginBottom: 12 }}>{item.icon}</div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 400, marginBottom: 10 }}>{item.title}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: 18, color: "var(--deep-clay)", flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 400 }}>{item.title}</span>
+              </div>
               <p style={{ fontSize: 18, lineHeight: 1.7, color: "var(--text-secondary)" }}>{item.body}</p>
             </div>
           ))}
