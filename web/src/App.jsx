@@ -748,7 +748,7 @@ function Footer({ onGiftBook, setPage }) {
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", marginBottom: 18, opacity: 0.4 }}>STUDIO</div>
             <div style={{ fontSize: 13.5, lineHeight: 2, opacity: 0.6 }}>
-              <a href="https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>
+              <a href="https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: 3, cursor: "pointer" }}>
                 <div>41 Barton Parade</div>
                 <div>Balmoral. Brisbane 4171</div>
               </a>
