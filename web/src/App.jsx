@@ -672,11 +672,6 @@ function PractitionerBio() {
           <p style={{ fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.6, fontStyle: "italic", fontWeight: 400, color: "var(--text-secondary)" }}>
             Clients are constantly looking for ways to move better, recover faster, and prevent injuries. I am a Certified Stretch Practitioner and work hands-on with clients that want to integrate evidence based assisted stretching techniques into their health and wellness routine.
           </p>
-          <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--bone-dark)", textAlign: "center" }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 17, fontStyle: "italic", color: "var(--deep-clay)", lineHeight: 1.5 }}>
-              "Your hamstrings shorten when you sit. We lengthen them."
-            </div>
-          </div>
         </div>
       </div>
     </Section>
