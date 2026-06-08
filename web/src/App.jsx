@@ -50,7 +50,6 @@ const STEPS = [
   { label: "ASSESS", time: "5 min", text: "A quick range-of-movement check on the major joints. This gives us a starting point and lets you feel the change at the end." },
   { label: "STRETCH", time: "45 min", text: "You lie on a padded table. We move your limbs through a full sequence of held and dynamic stretches — hamstrings, hips, lower back, shoulders, neck. Pressure is always within your comfort." },
   { label: "RETEST", time: "3 min", text: "The same checks as step two. You'll feel the difference. Most clients are surprised at how much further their body will go." },
-  { label: "GO", time: "2 min", text: "You leave with two or three take-home stretches matched to whatever was tightest — 30 seconds a day, no equipment." },
 ];
 
 const FAQS = [
