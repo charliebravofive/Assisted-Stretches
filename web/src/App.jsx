@@ -1074,7 +1074,6 @@ function SessionPage({ setPage, onBook, onGiftBook }) {
       <MessagingPillars />
       <HowItWorksSection />
       <FAQSection />
-      <PractitionerBio />
       <ReviewsSection />
       <ObjectionHandlers />
     </>
