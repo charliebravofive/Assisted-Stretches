@@ -911,7 +911,6 @@ function BenefitsPage({ onBook }) {
           ))}
         </div>
       </Section>
-      <ReviewsSection />
     </>
   );
 }
