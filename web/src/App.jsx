@@ -120,7 +120,7 @@ const DETAILED_FAQS = [
 const REVIEWS = [
   { stars: 5, text: "I've had massage every fortnight for ten years and never felt the kind of release I got in 60 minutes here. Walked out two inches taller.", name: "Sarah K.", label: "" },
   { stars: 5, text: "My hips have been a wreck since I started lifting heavy. Three sessions in and my squat depth is back.", name: "Marcus T.", label: "" },
-  { stars: 5, text: "Went in skeptical, came out a convert. The take-home stretches alone are worth the price.", name: "Anna L.", label: "" },
+  { stars: 5, text: "Went in sceptical, came out a convert.", name: "Anna L.", label: "" },
 ];
 
 const GIFT_REVIEWS = [
@@ -817,7 +817,7 @@ function HomePage({ onBook, onGiftBook }) {
       "review": [
         { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Sarah K." }, "reviewBody": "I've had massage every fortnight for ten years and never felt the kind of release I got in 60 minutes here. Walked out two inches taller." },
         { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Marcus T." }, "reviewBody": "My hips have been a wreck since I started lifting heavy. Three sessions in and my squat depth is back." },
-        { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Anna L." }, "reviewBody": "Went in skeptical, came out a convert. The take-home stretches alone are worth the price." }
+        { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "author": { "@type": "Person", "name": "Anna L." }, "reviewBody": "Went in sceptical, came out a convert." }
       ],
       "areaServed": [
         { "@type": "City", "name": "Brisbane" },
