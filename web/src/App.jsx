@@ -476,10 +476,6 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
               onMouseLeave={e => { if (!isActive(item)) e.currentTarget.style.color = "rgba(240,236,230,0.72)"; }}
             >{item.label}</button>
           ))}
-          <a href="https://www.instagram.com/assistedstretches/" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(240,236,230,0.72)", textDecoration: "none", fontSize: 13.5, letterSpacing: "0.02em" }}
-            onMouseEnter={e => e.currentTarget.style.color = "#F0ECE6"}
-            onMouseLeave={e => e.currentTarget.style.color = "rgba(240,236,230,0.72)"}
-          >Instagram</a>
           <button onClick={() => onBook()} style={{ background: "var(--terracotta)", color: "var(--bone)", border: "none", padding: "11px 28px", borderRadius: 6, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 13.5, fontWeight: 500, letterSpacing: "0.02em", transition: "background 0.25s" }} onMouseEnter={e => e.target.style.background = "var(--terracotta-hover)"} onMouseLeave={e => e.target.style.background = "var(--terracotta)"}>Book Now</button>
         </div>
         <button onClick={() => setMobileOpen(!mobileOpen)} className="mobile-menu-btn" style={{ display: "none", background: "none", border: "none", cursor: "pointer", padding: "10px 8px", flexDirection: "column", gap: 5, alignItems: "center", justifyContent: "center" }}>
@@ -493,7 +489,6 @@ function Nav({ currentPage, setPage, onBook, onContact, scrollRef }) {
           {navItems.map(item => (
             <button key={item.label} onClick={() => handleNav(item)} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 17, padding: "15px 0", color: isActive(item) ? "var(--terracotta)" : "rgba(240,236,230,0.85)", borderBottom: "1px solid rgba(240,236,230,0.07)", letterSpacing: "0.01em" }}>{item.label}</button>
           ))}
-          <a href="https://www.instagram.com/assistedstretches/" target="_blank" rel="noopener noreferrer" style={{ display: "block", width: "100%", textAlign: "left", fontFamily: "var(--font-body)", fontSize: 17, padding: "15px 0", color: "rgba(240,236,230,0.85)", borderBottom: "1px solid rgba(240,236,230,0.07)", letterSpacing: "0.01em", textDecoration: "none" }}>Instagram</a>
           <button onClick={() => { setMobileOpen(false); onBook(); }} style={{ marginTop: 16, width: "100%", padding: "15px 0", background: "var(--terracotta)", color: "var(--bone)", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font-body)", fontSize: 16, fontWeight: 600, letterSpacing: "0.04em" }}>Book Now</button>
         </div>
       )}
