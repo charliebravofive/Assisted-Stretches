@@ -72,7 +72,7 @@ async function sendBookingConfirmationEmail({ email, firstName, lastName, phone,
           </div>
           <div style="background:#2D3D35;border-radius:10px;padding:20px 24px;margin:0 0 20px;">
             <p style="color:#F0ECE6;font-size:14px;line-height:1.7;margin:0 0 14px;">Please populate the new patient form prior to your first appointment via the attached link.</p>
-            <a href="https://www.assistedstretches.com.au/#/new-patient-form" style="display:inline-block;background:#C8856A;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:14px;font-weight:600;">New Patient Form →</a>
+            <a href="https://assistedstretches.com.au/#/new-patient-form" style="display:inline-block;background:#C8856A;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:14px;font-weight:600;">New Patient Form →</a>
           </div>
           <p style="font-size:13px;color:#6B6054;line-height:1.7;">
             Please arrive 5 minutes early in comfortable clothing. To cancel or reschedule, contact us at least 24 hours before.
