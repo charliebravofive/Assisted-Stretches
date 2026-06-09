@@ -1761,7 +1761,11 @@ function NewPatientFormPage() {
 // ─── HASH ROUTING ────────────────────────────────────────────
 function getPageFromHash() {
   const hash = window.location.hash.replace(/^#\/?/, "");
-  return Object.values(PAGES).includes(hash) ? hash : PAGES.home;
+  if (Object.values(PAGES).includes(hash)) return hash;
+  // Also check the pathname — email clients often strip hash fragments
+  const path = window.location.pathname.replace(/^\//, "");
+  if (Object.values(PAGES).includes(path)) return path;
+  return PAGES.home;
 }
 
 // ─── APP ─────────────────────────────────────────────────────
