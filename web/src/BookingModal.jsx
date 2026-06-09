@@ -89,8 +89,8 @@ const btn = (variant, extra = {}) => ({
 });
 
 // ─── STEP BARS ───────────────────────────────────────────────
-const STEP_LABELS_NEW      = ["Service","Date","Time","Details","Waiver","Payment"];
-const STEP_LABELS_EXISTING = ["Service","Date","Time","Details","Payment"];
+const STEP_LABELS_NEW      = ["Date","Time","Details","Waiver","Payment"];
+const STEP_LABELS_EXISTING = ["Date","Time","Details","Payment"];
 
 function StepBar({ step, compact = false, labels = STEP_LABELS_NEW }) {
   const circleSize = compact ? 22 : 28;
@@ -99,7 +99,8 @@ function StepBar({ step, compact = false, labels = STEP_LABELS_NEW }) {
   return (
     <div style={{ display: "flex", alignItems: "center", padding: compact ? "0" : "0 28px" }}>
       {labels.map((label, i) => {
-        const done = i < step, cur = i === step;
+        const adjustedStep = step - 1; // steps start at 1 (calendar), labels start at 0
+        const done = i < adjustedStep, cur = i === adjustedStep;
         return (
           <div key={i} style={{ display: "flex", alignItems: "center", flex: i < labels.length - 1 ? 1 : "none" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
@@ -107,6 +108,7 @@ function StepBar({ step, compact = false, labels = STEP_LABELS_NEW }) {
                 {done ? "✓" : i + 1}
               </div>
               <span style={{ fontSize: labelSize, color: cur ? C.terracotta : done ? C.forest : C.textSec, fontWeight: cur ? 600 : 400, whiteSpace: "nowrap" }}>{label}</span>
+
             </div>
             {i < labels.length - 1 && (
               <div style={{ flex: 1, height: 1.5, background: done ? C.forest : C.boneDark, margin: "0 4px", marginBottom: compact ? 14 : 18, transition: "background 0.3s" }} />
@@ -1299,9 +1301,8 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
   useEffect(() => {
     if (isOpen || mode === 'page') {
-      setCustomerType(null);
-      setStep(initialProduct ? 1 : 0);
-      setProduct(initialProduct || null);
+      setStep(1); // skip service selection — go straight to calendar
+      setProduct(initialProduct || PRODUCTS[0]);
       setDate(null); setTime(null); setContact({}); setWaiver({}); setDone(false);
       setGiftStep(0);
       setGiftProduct(PRODUCTS[0]); setGiftContact({}); setGiftDate(null); setGiftTime(null);
@@ -1416,7 +1417,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     } else {
       // Go back to details (3) from payment (5), skipping waiver
       if (step === 5) { setStep(3); return; }
-      if (step === 0) return; // already at first step
+      if (step === 1) return; // already at first step (calendar)
       setStep(s => s - 1);
     }
   };
