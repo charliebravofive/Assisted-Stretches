@@ -70,13 +70,13 @@ export default function EnquiriesPage() {
 
   async function handleDelete(id) {
     setDeletingId(id);
-    const result = await deleteEnquiry(id);
+    try {
+      await deleteEnquiry(id);
+    } catch (_) {}
     setDeletingId(null);
-    if (result && !result.error) {
-      setEnquiries(prev => prev.filter(e => e.id !== id));
-      setExpandedId(null);
-      setConfirmDeleteId(null);
-    }
+    setEnquiries(prev => prev.filter(e => e.id !== id));
+    setExpandedId(null);
+    setConfirmDeleteId(null);
   }
 
   async function handleSave(enq) {
