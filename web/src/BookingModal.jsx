@@ -1271,7 +1271,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   }, []);
 
   // Regular booking state (steps 0–5)
-  const [customerType, setCustomerType] = useState(null); // 'new' | 'existing' | null
+  const [customerType] = useState('returning'); // always go straight to booking steps
   const [step,       setStep]      = useState(0);
   const [product,    setProduct]   = useState(null);
   const [date,       setDate]      = useState(null);
@@ -1414,10 +1414,9 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     if (isGiftCardFlow) {
       if (giftStep > 0 && giftStep !== 1) setGiftStep(s => s - 1);
     } else {
-      // Existing patients at payment (5) go back to details (3), not waiver
-      if (!isNewPatient && step === 5) { setStep(3); return; }
-      // At step 0 (Service), go back to patient type selection
-      if (step === 0) { setCustomerType(null); return; }
+      // Go back to details (3) from payment (5), skipping waiver
+      if (step === 5) { setStep(3); return; }
+      if (step === 0) return; // already at first step
       setStep(s => s - 1);
     }
   };
@@ -1447,16 +1446,14 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   if (mode === 'page') {
     return (
       <div style={{ maxWidth: 780, margin: '0 auto', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
-        {!isDone && customerType !== null && (
+        {!isDone && (
           <div style={{ marginBottom: 20 }}>
-            <StepBar step={step} compact labels={isNewPatient ? STEP_LABELS_NEW : STEP_LABELS_EXISTING} />
+            <StepBar step={step} compact labels={STEP_LABELS_EXISTING} />
           </div>
         )}
         <div>
           {isDone ? (
             <Confirmation booking={regBooking} onClose={onClose} isGiftFlow={false} />
-          ) : customerType === null ? (
-            <CustomerTypeStep value={customerType} onChange={type => setCustomerType(type)} />
           ) : (
             <>
               {step === 0 && <PagePricingStep selected={product} onSelect={setProduct} products={liveProducts} />}
@@ -1499,10 +1496,10 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: C.textSec, lineHeight: 1, padding: "0 4px" }}>×</button>
         </div>
 
-        {/* Step bar — hidden on customer type pre-screen */}
-        {!isDone && customerType !== null && (
+        {/* Step bar */}
+        {!isDone && (
           <div style={{ padding: "10px 24px 8px" }}>
-            {isGiftCardFlow ? <GiftStepBar giftStep={giftStep} /> : <StepBar step={step} labels={isNewPatient ? STEP_LABELS_NEW : STEP_LABELS_EXISTING} />}
+            {isGiftCardFlow ? <GiftStepBar giftStep={giftStep} /> : <StepBar step={step} labels={STEP_LABELS_EXISTING} />}
           </div>
         )}
 
@@ -1510,8 +1507,6 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
         <div style={{ padding: "6px 24px 20px" }}>
           {isDone ? (
             <Confirmation booking={isGiftCardFlow ? giftBooking : regBooking} onClose={onClose} isGiftFlow={isGiftCardFlow} />
-          ) : !isGiftCardFlow && customerType === null ? (
-            <CustomerTypeStep value={customerType} onChange={type => { setCustomerType(type); }} />
           ) : isGiftCardFlow ? (
             <>
               {giftStep === 0 && <ContactStep value={giftContact} onChange={setGiftContact} isGiftCard selectedProduct={giftProduct} onProductSelect={setGiftProduct} />}
