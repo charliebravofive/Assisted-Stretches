@@ -28,6 +28,7 @@ export const getClients = (params = '') => req(`/api/admin/clients${params}`);
 export const getClient = (id) => req(`/api/admin/clients/${id}`);
 export const getEnquiries = (params = '') => req(`/api/admin/enquiries${params}`);
 export const updateEnquiry = (id, data) => req(`/api/admin/enquiries/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+export const deleteEnquiry = (id) => req(`/api/admin/enquiries/${id}`, { method: 'DELETE' });
 export const getConfig = () => req('/api/admin/config');
 export const updateConfig = (data) => req('/api/admin/config', { method: 'PUT', body: JSON.stringify(data) });
 

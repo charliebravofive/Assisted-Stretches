@@ -12,6 +12,13 @@ router.get('/', (req, res) => {
   res.json(enquiries);
 });
 
+// DELETE /:id — remove an enquiry
+router.delete('/:id', (req, res) => {
+  const deleted = store.enquiries.delete(req.params.id);
+  if (!deleted) return res.status(404).json({ error: 'Not found' });
+  res.json({ success: true });
+});
+
 // PATCH /:id — update status, admin_note
 router.patch('/:id', (req, res) => {
   const { status, admin_note } = req.body;

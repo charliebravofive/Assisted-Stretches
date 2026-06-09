@@ -152,6 +152,13 @@ const store = {
       save();
       return data.enquiries[idx];
     },
+    delete(id) {
+      const idx = data.enquiries.findIndex(e => e.id === Number(id));
+      if (idx === -1) return false;
+      data.enquiries.splice(idx, 1);
+      save();
+      return true;
+    },
   },
 
   waivers: {

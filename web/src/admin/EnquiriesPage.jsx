@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getEnquiries, updateEnquiry } from './adminApi.js';
+import { getEnquiries, updateEnquiry, deleteEnquiry } from './adminApi.js';
 
 const STATUS_COLORS = {
   new: { bg: '#fff7ed', color: '#9a3412' },
@@ -35,6 +35,8 @@ export default function EnquiriesPage() {
   const [draftStatus, setDraftStatus] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState({});
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   function load() {
     setLoading(true);
@@ -63,6 +65,17 @@ export default function EnquiriesPage() {
           setDraftStatus(prev => ({ ...prev, [enq.id]: 'read' }));
         }
       });
+    }
+  }
+
+  async function handleDelete(id) {
+    setDeletingId(id);
+    const result = await deleteEnquiry(id);
+    setDeletingId(null);
+    if (result && !result.error) {
+      setEnquiries(prev => prev.filter(e => e.id !== id));
+      setExpandedId(null);
+      setConfirmDeleteId(null);
     }
   }
 
@@ -198,7 +211,7 @@ export default function EnquiriesPage() {
                               />
                             </div>
 
-                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                               <button onClick={() => handleSave(enq)} disabled={saving} style={primaryBtnStyle}>
                                 {saving ? 'Saving…' : 'Save'}
                               </button>
@@ -208,6 +221,19 @@ export default function EnquiriesPage() {
                               >
                                 Reply via Email
                               </a>
+                              {confirmDeleteId === enq.id ? (
+                                <>
+                                  <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 600 }}>Delete this enquiry?</span>
+                                  <button onClick={() => handleDelete(enq.id)} disabled={deletingId === enq.id} style={deleteBtnStyle}>
+                                    {deletingId === enq.id ? 'Deleting…' : 'Yes, delete'}
+                                  </button>
+                                  <button onClick={() => setConfirmDeleteId(null)} style={secondaryBtnStyle}>Cancel</button>
+                                </>
+                              ) : (
+                                <button onClick={() => setConfirmDeleteId(enq.id)} style={{ ...secondaryBtnStyle, color: '#dc2626', borderColor: '#dc2626' }}>
+                                  Delete
+                                </button>
+                              )}
                               {saveMsg[enq.id] && (
                                 <span style={{ color: '#166534', fontSize: 13 }}>{saveMsg[enq.id]}</span>
                               )}
@@ -231,4 +257,5 @@ const thStyle = { padding: '10px 16px', textAlign: 'left', fontSize: 12, fontWei
 const tdStyle = { padding: '12px 16px', fontSize: 14, color: '#1a1816', borderTop: '1px solid #f0ece6' };
 const primaryBtnStyle = { padding: '8px 16px', background: '#c8856a', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' };
 const secondaryBtnStyle = { padding: '8px 14px', background: '#fff', color: '#1a1816', border: '1px solid #d4c4a8', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' };
+const deleteBtnStyle = { padding: '8px 14px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' };
 const selectStyle = { width: '100%', padding: '8px 12px', border: '1px solid #d4c4a8', borderRadius: 6, fontSize: 14, outline: 'none', fontFamily: 'inherit', background: '#fff', boxSizing: 'border-box' };
