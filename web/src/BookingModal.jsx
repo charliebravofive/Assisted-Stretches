@@ -1216,11 +1216,15 @@ function Confirmation({ booking, onClose, isGiftFlow }) {
         A confirmation has been sent to <strong style={{ color: C.forest }}>{booking.contact?.email}</strong>. We'll see you on{" "}
         {booking.date?.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })} at {booking.time}.
       </p>
-      <div style={{ background: C.white, border: `1px solid ${C.boneDark}`, borderRadius: 12, padding: "20px 24px", marginBottom: 28, textAlign: "left", fontSize: 13.5, lineHeight: 2.1, color: C.textSec }}>
+      <div style={{ background: C.white, border: `1px solid ${C.boneDark}`, borderRadius: 12, padding: "20px 24px", marginBottom: 20, textAlign: "left", fontSize: 13.5, lineHeight: 2.1, color: C.textSec }}>
         <div>📍 <strong style={{ color: C.forest }}>Location:</strong> 41 Barton Parade, Balmoral QLD 4171</div>
         <div>🚗 <strong style={{ color: C.forest }}>Parking:</strong> Street parking available on Barton Parade</div>
         <div>🪑 <strong style={{ color: C.forest }}>On arrival:</strong> Make yourself comfortable on the sofa on the front porch — I'll collect you for your appointment</div>
         <div>↩️ <strong style={{ color: C.forest }}>Cancel / reschedule:</strong> Up to 24 hours before</div>
+      </div>
+      <div style={{ background: C.forest, borderRadius: 12, padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
+        <p style={{ color: C.bone, fontSize: 13.5, lineHeight: 1.7, margin: "0 0 14px" }}>If this is your first visit, please complete the New Patient Form before your appointment.</p>
+        <a href="https://www.assistedstretches.com/#/new-patient-form" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: C.terracotta, color: C.bone, textDecoration: "none", padding: "10px 22px", borderRadius: 6, fontSize: 13.5, fontWeight: 600 }}>New Patient Form →</a>
       </div>
       <button onClick={onClose} style={{ ...btn("primary"), padding: "14px 40px", fontSize: 15 }}>Done</button>
     </div>
