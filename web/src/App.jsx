@@ -1766,18 +1766,19 @@ function getPageFromHash() {
 
 // ─── APP ─────────────────────────────────────────────────────
 export default function App() {
-  // Always start on home page — clear any stale hash from the URL on first load
-  const [page, setPage] = useState(PAGES.home);
+  // Start on home page, unless the URL hash points to a valid page (e.g. from email links)
+  const [page, setPage] = useState(getPageFromHash);
   const [bookingConfig, setBookingConfig] = useState(null);
   const [contactOpen, setContactOpen] = useState(false);
   const scrollRef = useRef(null);
 
-  // On mount: strip any leftover hash so the URL is clean
+  // On mount: clean up hash only if it's not a valid page route
   useEffect(() => {
-    if (window.location.hash) {
+    const hashPage = getPageFromHash();
+    if (hashPage === PAGES.home && window.location.hash) {
+      // Hash exists but doesn't match any page — clear it
       history.replaceState(null, "", window.location.pathname);
     }
-    // Ensure scroll is at top on iOS (scrollTop on a div can be ignored)
     window.scrollTo(0, 0);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, []);
