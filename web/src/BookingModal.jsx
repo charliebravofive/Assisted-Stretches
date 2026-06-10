@@ -1331,7 +1331,9 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     return getLocalBookings().filter(k => k.startsWith(ddmmyyyy + "||")).map(k => k.split("||")[1]);
   };
 
-  // Fetch taken slots — merges server response with locally-stored confirmed bookings
+  // Fetch taken slots — merges server response with locally-stored confirmed bookings.
+  // If the server says a slot is FREE, evict it from localStorage so cancelled
+  // bookings never stay permanently greyed out in the user's browser.
   const fetchAvailability = (d) => {
     if (!d) { setTakenSlots([]); return; }
     const ddmmyyyy = fmtSessionDate(d);
@@ -1340,7 +1342,16 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
       .then(r => r.json())
       .then(data => {
         const server = Array.isArray(data.taken) ? data.taken : [];
-        setTakenSlots([...new Set([...server, ...local])]);
+        // Evict any locally-cached slots that the server now says are free
+        const stale = local.filter(t => !server.includes(t));
+        if (stale.length) {
+          try {
+            const prefix = ddmmyyyy + "||";
+            const cleaned = getLocalBookings().filter(k => !stale.some(t => k === prefix + t));
+            localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(cleaned));
+          } catch (_) {}
+        }
+        setTakenSlots([...new Set([...server, ...local.filter(t => !stale.includes(t))])]);
       })
       .catch(() => { setTakenSlots(local); }); // fallback to local on network error
   };
