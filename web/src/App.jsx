@@ -1832,6 +1832,7 @@ export default function App() {
       <BookingModal
         isOpen={!!bookingConfig}
         onClose={closeBooking}
+        onNavigate={setPage}
         initialProduct={bookingConfig?.product}
         initialStep={bookingConfig?.initialStep}
       />

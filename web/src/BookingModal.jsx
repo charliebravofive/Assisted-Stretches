@@ -1234,7 +1234,7 @@ function Confirmation({ booking, onClose, isGiftFlow }) {
 }
 
 // ─── MAIN MODAL ───────────────────────────────────────────────
-export default function BookingModal({ isOpen, onClose, initialProduct, initialStep, mode = 'modal' }) {
+export default function BookingModal({ isOpen, onClose, onNavigate, initialProduct, initialStep, mode = 'modal' }) {
   // Live config state from API
   const [liveProducts,   setLiveProducts]   = useState(null);
   const [liveAvailDays,  setLiveAvailDays]  = useState(null);
@@ -1273,7 +1273,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
   }, []);
 
   // Regular booking state (steps 0–5)
-  const [customerType] = useState('returning'); // always go straight to booking steps
+  const [customerType, setCustomerType] = useState(null); // null = not yet chosen
   const [step,       setStep]      = useState(0);
   const [product,    setProduct]   = useState(null);
   const [date,       setDate]      = useState(null);
@@ -1301,7 +1301,8 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
 
   useEffect(() => {
     if (isOpen || mode === 'page') {
-      setStep(1); // skip service selection — go straight to calendar
+      setCustomerType(null); // show new/returning selection first
+      setStep(1);
       setProduct(initialProduct || PRODUCTS[0]);
       setDate(null); setTime(null); setContact({}); setWaiver({}); setDone(false);
       setGiftStep(0);
@@ -1428,7 +1429,7 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
     } else {
       // Go back to details (3) from payment (5), skipping waiver
       if (step === 5) { setStep(3); return; }
-      if (step === 1) return; // already at first step (calendar)
+      if (step === 1) { setCustomerType(null); return; } // back to new/returning selection
       setStep(s => s - 1);
     }
   };
@@ -1508,8 +1509,8 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: C.textSec, lineHeight: 1, padding: "0 4px" }}>×</button>
         </div>
 
-        {/* Step bar */}
-        {!isDone && (
+        {/* Step bar — hidden on customer-type selection screen */}
+        {!isDone && customerType !== null && (
           <div style={{ padding: "10px 24px 8px" }}>
             {isGiftCardFlow ? <GiftStepBar giftStep={giftStep} /> : <StepBar step={step} labels={STEP_LABELS_EXISTING} />}
           </div>
@@ -1519,6 +1520,28 @@ export default function BookingModal({ isOpen, onClose, initialProduct, initialS
         <div style={{ padding: "6px 24px 20px" }}>
           {isDone ? (
             <Confirmation booking={isGiftCardFlow ? giftBooking : regBooking} onClose={onClose} isGiftFlow={isGiftCardFlow} />
+          ) : customerType === null ? (
+            /* ── New / Returning client selection ── */
+            <div>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: 22, fontWeight: 400, color: C.forest, marginBottom: 8 }}>Welcome</h2>
+              <p style={{ fontSize: 14, color: C.textSec, marginBottom: 24, lineHeight: 1.6 }}>Is this your first visit to Assisted Stretches?</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <button
+                  onClick={() => { onClose(); if (onNavigate) onNavigate('new-patient-form'); }}
+                  style={{ background: C.forest, color: C.bone, border: "none", borderRadius: 10, padding: "20px 24px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>New client</div>
+                  <div style={{ fontSize: 13, opacity: 0.75 }}>First visit — complete the New Patient Form before booking</div>
+                </button>
+                <button
+                  onClick={() => { setCustomerType('returning'); }}
+                  style={{ background: C.white, color: C.forest, border: `1.5px solid ${C.boneDark}`, borderRadius: 10, padding: "20px 24px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Returning client</div>
+                  <div style={{ fontSize: 13, opacity: 0.65 }}>Continue to book your next session</div>
+                </button>
+              </div>
+            </div>
           ) : isGiftCardFlow ? (
             <>
               {giftStep === 0 && <ContactStep value={giftContact} onChange={setGiftContact} isGiftCard selectedProduct={giftProduct} onProductSelect={setGiftProduct} />}
