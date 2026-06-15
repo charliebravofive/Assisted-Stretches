@@ -49,7 +49,7 @@ const ALL_SLOTS = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM
 
 const EMPTY_FORM = { first_name: '', last_name: '', email: '', phone: '', session_date: '', session_time: '', product_id: 'session', payment_method: 'manual', notes: '' };
 
-function CreateBookingModal({ onClose, onCreated }) {
+function CreateBookingModal({ onClose, onCreated, existingBookings = [] }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -66,6 +66,13 @@ function CreateBookingModal({ onClose, onCreated }) {
     const [y, m, d] = val.split('-');
     return `${d}/${m}/${y}`;
   }
+
+  // Find booked slots for the selected date (ignore cancelled)
+  const bookedSlots = new Set(
+    existingBookings
+      .filter(b => b.status !== 'cancelled' && b.session_date === toStorageDate(form.session_date))
+      .map(b => b.session_time)
+  );
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -133,7 +140,11 @@ function CreateBookingModal({ onClose, onCreated }) {
               Time <span style={{ color: '#c8856a' }}>*</span>
               <select style={fieldStyle} value={form.session_time} onChange={set('session_time')} required>
                 <option value="">Select time…</option>
-                {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+                {timeSlots.map(t => (
+                  <option key={t} value={t} disabled={bookedSlots.has(t)}>
+                    {t}{bookedSlots.has(t) ? ' — booked' : ''}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -241,6 +252,7 @@ export default function BookingsPage() {
         <CreateBookingModal
           onClose={() => setShowCreate(false)}
           onCreated={record => setBookings(prev => [record, ...prev])}
+          existingBookings={bookings}
         />
       )}
 
