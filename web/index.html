@@ -182,15 +182,6 @@
           ]
         },
         {
-          "@type": "WebSite",
-          "@id": "https://www.assistedstretches.com/#website",
-          "url": "https://www.assistedstretches.com",
-          "name": "Assisted Stretches",
-          "description": "Brisbane's dedicated one-on-one assisted stretching studio — 60-minute PNF sessions for flexibility, recovery, and pain relief.",
-          "publisher": { "@id": "https://www.assistedstretches.com/#business" },
-          "inLanguage": "en-AU"
-        },
-        {
           "@type": "WebPage",
           "@id": "https://www.assistedstretches.com/#webpage",
           "url": "https://www.assistedstretches.com/",
@@ -203,7 +194,34 @@
             "url": "https://www.assistedstretches.com/session-hero.jpg"
           },
           "inLanguage": "en-AU",
-          "dateModified": "2026-06-04"
+          "dateModified": "2026-06-15",
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [".hero-headline", ".hero-subheadline", "h1", "h2"]
+          },
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.assistedstretches.com/" }
+            ]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.assistedstretches.com/#website",
+          "url": "https://www.assistedstretches.com",
+          "name": "Assisted Stretches",
+          "description": "Brisbane's dedicated one-on-one assisted stretching studio — 60-minute PNF sessions for flexibility, recovery, and pain relief.",
+          "publisher": { "@id": "https://www.assistedstretches.com/#business" },
+          "inLanguage": "en-AU",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://www.assistedstretches.com/?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
         }
       ]
     }
@@ -307,6 +325,75 @@
         "reviewCount": "180",
         "bestRating": "5"
       }
+    }
+    </script>
+
+    <!-- HowTo schema — drives rich results for "how does a session work" / "what to expect" -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "What Happens in an Assisted Stretch Session",
+      "description": "A step-by-step guide to what you can expect during a 60-minute assisted stretch session at Assisted Stretches Brisbane.",
+      "totalTime": "PT60M",
+      "estimatedCost": { "@type": "MonetaryAmount", "currency": "AUD", "value": "125" },
+      "supply": [
+        { "@type": "HowToSupply", "name": "Comfortable gym clothing (shorts and t-shirt)" }
+      ],
+      "tool": [
+        { "@type": "HowToTool", "name": "Padded stretching table" },
+        { "@type": "HowToTool", "name": "Trained PNF stretch practitioner" }
+      ],
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Arrive and consult",
+          "text": "Arrive at the studio in comfortable clothing. Your practitioner will discuss how your body is feeling, any areas of concern, and your goals for the session. Takes approximately 5 minutes.",
+          "image": "https://www.assistedstretches.com/session-hero.jpg"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Range-of-movement assessment",
+          "text": "Your practitioner performs a brief range-of-movement check on your major joints — hips, hamstrings, shoulders, lower back — to establish a starting point and tailor the session. Takes approximately 5 minutes.",
+          "image": "https://www.assistedstretches.com/session-hero.jpg"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Hands-on assisted stretching",
+          "text": "You lie on a padded table. Your practitioner guides you through a full sequence of PNF and passive stretches targeting hamstrings, hips, lower back, shoulders, and neck. Pressure is always within your comfort. Takes approximately 45 minutes.",
+          "image": "https://www.assistedstretches.com/session-hero.jpg"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Retest and feel the difference",
+          "text": "The same range-of-movement checks are repeated so you can feel the measurable improvement in flexibility and mobility from a single session. Takes approximately 3 minutes.",
+          "image": "https://www.assistedstretches.com/session-hero.jpg"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Take-home stretches",
+          "text": "Your practitioner provides 2–3 personalised take-home stretches matched to your tightest areas, so you can maintain progress between sessions. Takes approximately 2 minutes.",
+          "image": "https://www.assistedstretches.com/session-hero.jpg"
+        }
+      ]
+    }
+    </script>
+
+    <!-- BreadcrumbList schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Assisted Stretches", "item": "https://www.assistedstretches.com/" },
+        { "@type": "ListItem", "position": 2, "name": "Book a Session",     "item": "https://www.assistedstretches.com/" },
+        { "@type": "ListItem", "position": 3, "name": "FAQ",                "item": "https://www.assistedstretches.com/" }
+      ]
     }
     </script>
 
