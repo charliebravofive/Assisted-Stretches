@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const store = require('../../store');
-const { sendBookingCancellationEmail } = require('../../lib/mailer');
+const { sendBookingConfirmationEmail, sendBookingCancellationEmail } = require('../../lib/mailer');
 
 // GET /export — CSV download (must be before /:id)
 router.get('/export', (req, res) => {
@@ -35,6 +35,14 @@ router.post('/', (req, res) => {
     created_at: now,
   });
   store.clients.upsert({ first_name, last_name, email, phone, source: 'admin', created_at: now });
+
+  // Send confirmation email to client (non-fatal)
+  sendBookingConfirmationEmail({
+    email, firstName: first_name, lastName: last_name, phone,
+    sessionDate: session_date, sessionTime: session_time,
+    productLabel: product_id || 'session', notes: notes || '',
+  }).catch(err => console.error('Admin booking confirmation email failed (non-fatal):', err.message));
+
   res.status(201).json(record);
 });
 
