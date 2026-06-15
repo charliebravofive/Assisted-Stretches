@@ -225,18 +225,6 @@ const globalStyles = `
 
     /* Body padding for sticky book btn */
     body { padding-bottom: 68px; }
-
-    /* Home hero — tighten spacing so photo is visible above fold */
-    .home-hero-section { padding-top: 10px !important; padding-bottom: 16px !important; }
-    .home-hero-grid { gap: 14px !important; }
-    /* Show photo first on mobile */
-    .home-hero-grid > *:first-child { order: 2; }
-    .home-hero-grid > *:last-child  { order: 1; }
-    /* Cap photo height so it fits above fold */
-    .home-hero-grid > *:first-child div { height: 42vw !important; min-height: 180px !important; max-height: 260px !important; }
-    /* Compress hero text spacing */
-    .home-hero-grid h1 { margin-bottom: 8px !important; }
-    .home-hero-grid p  { margin-bottom: 10px !important; }
   }
 
   @media (max-width: 480px) {
@@ -848,8 +836,8 @@ function HomePage({ onBook, onGiftBook }) {
   return (
     <>
       {/* Session pricing hero — top of page */}
-      <Section style={{ paddingTop: 40, paddingBottom: 48 }} className="home-hero-section">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "center" }} className="hero-grid home-hero-grid">
+      <Section style={{ paddingTop: 40, paddingBottom: 48 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "center" }} className="hero-grid">
           <div>
             <div className="fade-up" style={{ opacity: 0 }}>
               <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>ONE-ON-ONE · 60 MINUTES · BRISBANE STUDIO</div>
