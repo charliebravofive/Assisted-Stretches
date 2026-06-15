@@ -1777,12 +1777,19 @@ export default function App() {
   const scrollRef = useRef(null);
 
   // On mount: clean up hash only if it's not a valid page route
+  // Also bust the booking slot cache whenever the DB is reset (bump CACHE_V to clear all browsers).
+  const CACHE_V = "2"; // bump this whenever the booking database is purged
   useEffect(() => {
     const hashPage = getPageFromHash();
     if (hashPage === PAGES.home && window.location.hash) {
-      // Hash exists but doesn't match any page — clear it
       history.replaceState(null, "", window.location.pathname);
     }
+    try {
+      if (localStorage.getItem("as_booking_cache_v") !== CACHE_V) {
+        localStorage.removeItem("as_confirmed_bookings");
+        localStorage.setItem("as_booking_cache_v", CACHE_V);
+      }
+    } catch (_) {}
     window.scrollTo(0, 0);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, []);
