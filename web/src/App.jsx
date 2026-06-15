@@ -798,7 +798,7 @@ function HomePage({ onBook, onGiftBook }) {
       "openingHoursSpecification": [
         { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Friday", "opens": "16:00", "closes": "18:00" },
         { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Saturday", "opens": "08:00", "closes": "16:00" },
-        { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Sunday", "opens": "09:00", "closes": "12:00" }
+        { "@type": "OpeningHoursSpecification", "dayOfWeek": "https://schema.org/Sunday", "opens": "09:00", "closes": "14:00" }
       ],
       "priceRange": "$125–$1,000",
       "currenciesAccepted": "AUD",
@@ -1046,7 +1046,7 @@ function ContactPage() {
                   {[
                     { day: "Friday", hours: "4:00 pm – 6:00 pm" },
                     { day: "Saturday", hours: "8:00 am – 4:00 pm" },
-                    { day: "Sunday", hours: "9:00 am – 12:00 pm" },
+                    { day: "Sunday", hours: "9:00 am – 2:00 pm" },
                   ].map(({ day, hours }) => (
                     <div key={day} style={{ display: "flex", gap: 12, fontSize: 15, color: "var(--forest-ink)" }}>
                       <span style={{ minWidth: 72, color: "var(--text-secondary)", fontSize: 14 }}>{day}</span>

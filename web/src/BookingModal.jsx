@@ -39,7 +39,7 @@ function getBookingDateBounds() {
 const SLOTS_BY_DAY = {
   5: ["4:00 PM", "5:00 PM"],
   6: ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM"],
-  0: ["9:00 AM", "10:00 AM", "11:00 AM"],
+  0: ["9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM"],
 };
 
 function getSlotsForDate(date) {
@@ -297,7 +297,7 @@ function DateStep({ value, onChange, minDate, maxDate, sessionNum, maxSessions, 
     <div>
       <h2 style={{ fontFamily: "Georgia, serif", fontSize: 20, fontWeight: 400, color: C.forest, marginBottom: 4 }}>Pick a date</h2>
       {maxSessions > 1 && <div style={{ fontSize: 12, fontWeight: 600, color: C.terracotta, letterSpacing: "0.08em", marginBottom: 4 }}>Session {sessionNum} of {maxSessions}</div>}
-      <p style={{ fontSize: 13, color: C.textSec, marginBottom: 12, lineHeight: 1.5 }}>Available Friday (4–6 pm), Saturday (8 am–4 pm) and Sunday (9 am–12 pm). Select a day to see times.</p>
+      <p style={{ fontSize: 13, color: C.textSec, marginBottom: 12, lineHeight: 1.5 }}>Available Friday (4–6 pm), Saturday (8 am–4 pm) and Sunday (9 am–2 pm). Select a day to see times.</p>
       <div style={{ background: C.white, borderRadius: 12, padding: "14px 16px", border: `1px solid ${C.boneDark}`, position: "relative", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <button onClick={() => canPrev && setView(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: canPrev ? "pointer" : "default", fontSize: 20, color: canPrev ? C.forest : C.boneDark, padding: "4px 8px", lineHeight: 1 }}>‹</button>
