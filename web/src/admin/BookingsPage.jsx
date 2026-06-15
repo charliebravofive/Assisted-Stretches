@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getBookings, updateBooking, exportBookings } from './adminApi.js';
+import { getBookings, updateBooking, exportBookings, createBooking } from './adminApi.js';
 
 const STATUS_COLORS = {
   confirmed: { bg: '#dcfce7', color: '#166534' },
@@ -40,6 +40,143 @@ function formatDate(dateStr) {
   } catch { return dateStr; }
 }
 
+const SLOTS = {
+  5: ['4:00 PM', '5:00 PM'],
+  6: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM'],
+  0: ['9:00 AM', '10:00 AM', '11:00 AM'],
+};
+const ALL_SLOTS = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
+
+const EMPTY_FORM = { first_name: '', last_name: '', email: '', phone: '', session_date: '', session_time: '', product_id: 'session', payment_method: 'manual', notes: '' };
+
+function CreateBookingModal({ onClose, onCreated }) {
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  // Derive available time slots from selected date
+  const dayOfWeek = form.session_date ? new Date(form.session_date + 'T00:00:00').getDay() : null;
+  const timeSlots = dayOfWeek !== null ? (SLOTS[dayOfWeek] || ALL_SLOTS) : ALL_SLOTS;
+
+  // Convert YYYY-MM-DD (input[type=date]) to DD/MM/YYYY for storage
+  function toStorageDate(val) {
+    if (!val) return '';
+    const [y, m, d] = val.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    if (!form.first_name || !form.last_name || !form.email || !form.phone || !form.session_date || !form.session_time) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const result = await createBooking({ ...form, session_date: toStorageDate(form.session_date) });
+      if (result && !result.error) {
+        onCreated(result);
+        onClose();
+      } else {
+        setError(result?.error || 'Failed to create booking');
+      }
+    } catch {
+      setError('Failed to create booking');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: '#fff', borderRadius: 12, padding: 32, width: '100%', maxWidth: 520, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#1a1816' }}>New Booking</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#888', lineHeight: 1 }}>×</button>
+        </div>
+
+        {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: 6, marginBottom: 16, fontSize: 13 }}>{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <label style={labelStyle}>
+              First name <span style={{ color: '#c8856a' }}>*</span>
+              <input style={fieldStyle} value={form.first_name} onChange={set('first_name')} placeholder="Jane" required />
+            </label>
+            <label style={labelStyle}>
+              Last name <span style={{ color: '#c8856a' }}>*</span>
+              <input style={fieldStyle} value={form.last_name} onChange={set('last_name')} placeholder="Smith" required />
+            </label>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <label style={labelStyle}>
+              Email <span style={{ color: '#c8856a' }}>*</span>
+              <input style={fieldStyle} type="email" value={form.email} onChange={set('email')} placeholder="jane@example.com" required />
+            </label>
+            <label style={labelStyle}>
+              Phone <span style={{ color: '#c8856a' }}>*</span>
+              <input style={fieldStyle} value={form.phone} onChange={set('phone')} placeholder="0400 000 000" required />
+            </label>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <label style={labelStyle}>
+              Date <span style={{ color: '#c8856a' }}>*</span>
+              <input style={fieldStyle} type="date" value={form.session_date} onChange={e => { set('session_date')(e); setForm(f => ({ ...f, session_time: '' })); }} required />
+            </label>
+            <label style={labelStyle}>
+              Time <span style={{ color: '#c8856a' }}>*</span>
+              <select style={fieldStyle} value={form.session_time} onChange={set('session_time')} required>
+                <option value="">Select time…</option>
+                {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </label>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <label style={labelStyle}>
+              Service
+              <select style={fieldStyle} value={form.product_id} onChange={set('product_id')}>
+                <option value="session">60 min session</option>
+                <option value="5-pack">5-Pack</option>
+                <option value="10-pack">10-Pack</option>
+              </select>
+            </label>
+            <label style={labelStyle}>
+              Payment method
+              <select style={fieldStyle} value={form.payment_method} onChange={set('payment_method')}>
+                <option value="manual">Manual / Admin</option>
+                <option value="cash">Cash</option>
+                <option value="eftpos">EFTPOS</option>
+                <option value="invoice">Invoice</option>
+                <option value="gift-card">Gift Card</option>
+                <option value="stripe">Stripe</option>
+              </select>
+            </label>
+          </div>
+
+          <label style={{ ...labelStyle, marginBottom: 20 }}>
+            Notes
+            <textarea style={{ ...fieldStyle, height: 72, resize: 'vertical' }} value={form.notes} onChange={set('notes')} placeholder="Optional notes…" />
+          </label>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" onClick={onClose} style={{ ...secondaryBtnStyle, flex: 1, padding: '11px 0' }}>Cancel</button>
+            <button type="submit" disabled={saving} style={{ flex: 2, background: '#2D3D35', color: '#fff', border: 'none', borderRadius: 6, padding: '11px 0', fontSize: 14, fontWeight: 600, cursor: saving ? 'wait' : 'pointer', fontFamily: 'inherit' }}>
+              {saving ? 'Creating…' : 'Create Booking'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function BookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +186,7 @@ export default function BookingsPage() {
   const [expandedId, setExpandedId] = useState(null);
   const [reschedule, setReschedule] = useState({ date: '', time: '' });
   const [saving, setSaving] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
   function load() {
     setLoading(true);
@@ -99,7 +237,14 @@ export default function BookingsPage() {
 
   return (
     <div>
-      {/* Filters + Export */}
+      {showCreate && (
+        <CreateBookingModal
+          onClose={() => setShowCreate(false)}
+          onCreated={record => setBookings(prev => [record, ...prev])}
+        />
+      )}
+
+      {/* Filters + Export + New Booking */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
@@ -125,12 +270,20 @@ export default function BookingsPage() {
             ))}
           </div>
         </div>
-        <button
-          onClick={() => exportBookings()}
-          style={{ ...btnStyle, background: '#2D3D35', color: '#fff', border: 'none', whiteSpace: 'nowrap' }}
-        >
-          Export CSV
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{ ...btnStyle, background: '#c8856a', color: '#fff', border: 'none', whiteSpace: 'nowrap', fontWeight: 600 }}
+          >
+            + New Booking
+          </button>
+          <button
+            onClick={() => exportBookings()}
+            style={{ ...btnStyle, background: '#2D3D35', color: '#fff', border: 'none', whiteSpace: 'nowrap' }}
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {loading && <div style={{ color: '#888' }}>Loading…</div>}
@@ -251,6 +404,27 @@ function Field({ label, value }) {
     </div>
   );
 }
+
+const labelStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 5,
+  fontSize: 13,
+  fontWeight: 600,
+  color: '#555',
+};
+
+const fieldStyle = {
+  padding: '9px 12px',
+  border: '1px solid #d4c4a8',
+  borderRadius: 6,
+  fontSize: 14,
+  outline: 'none',
+  fontFamily: 'inherit',
+  background: '#fff',
+  width: '100%',
+  boxSizing: 'border-box',
+};
 
 const inputStyle = {
   padding: '8px 14px',

@@ -20,6 +20,7 @@ export const getDashboard = (params = {}) => {
   return req(`/api/admin/dashboard${qs}`);
 };
 export const getBookings = (params = '') => req(`/api/admin/bookings${params}`);
+export const createBooking = (data) => req('/api/admin/bookings', { method: 'POST', body: JSON.stringify(data) });
 export const updateBooking = (id, data) => req(`/api/admin/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const getGiftCards = (params = '') => req(`/api/admin/gift-cards${params}`);
 export const updateGiftCard = (id, data) => req(`/api/admin/gift-cards/${id}`, { method: 'PATCH', body: JSON.stringify(data) });

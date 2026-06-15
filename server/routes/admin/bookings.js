@@ -17,6 +17,27 @@ router.get('/export', (req, res) => {
   res.send(header + rows);
 });
 
+// POST / — admin manually creates a booking (no Stripe payment required)
+router.post('/', (req, res) => {
+  const { first_name, last_name, email, phone, session_date, session_time, product_id, payment_method, notes } = req.body;
+  if (!first_name || !last_name || !email || !phone || !session_date || !session_time) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  const now = new Date().toISOString();
+  const record = store.bookings.create({
+    first_name, last_name, email, phone,
+    product_id: product_id || 'session',
+    session_date, session_time,
+    payment_method: payment_method || 'manual',
+    notes: notes || null,
+    gift_card_code: null,
+    stripe_payment_id: null,
+    created_at: now,
+  });
+  store.clients.upsert({ first_name, last_name, email, phone, source: 'admin', created_at: now });
+  res.status(201).json(record);
+});
+
 // GET / — list all bookings, sorted by session_date desc
 router.get('/', (req, res) => {
   let bookings = store.bookings.list();
