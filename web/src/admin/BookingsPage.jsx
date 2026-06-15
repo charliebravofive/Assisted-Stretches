@@ -206,7 +206,7 @@ export default function BookingsPage() {
     if (statusFilter) params.push(`status=${statusFilter}`);
     const qs = params.length ? '?' + params.join('&') : '';
     getBookings(qs)
-      .then(d => Array.isArray(d) ? setBookings(d) : setError(d.error || 'Error'))
+      .then(d => Array.isArray(d) ? setBookings(d.filter(b => b.status !== 'cancelled')) : setError(d.error || 'Error'))
       .catch(() => setError('Failed to load bookings'))
       .finally(() => setLoading(false));
   }
@@ -243,8 +243,8 @@ export default function BookingsPage() {
     setReschedule({ date: '', time: '' });
   }
 
-  const statusButtons = ['', 'confirmed', 'cancelled', 'no-show'];
-  const statusLabels = { '': 'All', confirmed: 'Confirmed', cancelled: 'Cancelled', 'no-show': 'No-show' };
+  const statusButtons = ['', 'confirmed', 'no-show'];
+  const statusLabels = { '': 'All', confirmed: 'Confirmed', 'no-show': 'No-show' };
 
   return (
     <div>
