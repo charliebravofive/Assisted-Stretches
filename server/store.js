@@ -179,6 +179,10 @@ const store = {
     findByEmail(email) {
       return data.waivers.filter(w => w.email === email);
     },
+    purge() {
+      data.waivers = [];
+      save();
+    },
   },
 };
 

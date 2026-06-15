@@ -18,6 +18,13 @@ router.get('/', (req, res) => {
   res.json(waivers.map(({ signature, ...rest }) => rest));
 });
 
+// DELETE / — purge all waivers
+router.delete('/', (req, res) => {
+  const count = store.waivers.list().length;
+  store.waivers.purge();
+  res.json({ purged: count });
+});
+
 // GET /:id — full waiver including signature
 router.get('/:id', (req, res) => {
   const waiver = store.waivers.findById(Number(req.params.id));
