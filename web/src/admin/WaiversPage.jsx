@@ -84,6 +84,12 @@ export default function WaiversPage() {
     api('/api/admin/waivers').then(setWaivers).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
+  const purgeAll = async () => {
+    if (!window.confirm('Permanently delete all waivers? This cannot be undone.')) return;
+    await api('/api/admin/waivers', { method: 'DELETE' });
+    setWaivers([]);
+  };
+
   const openDetail = async (w) => {
     try {
       const full = await api(`/api/admin/waivers/${w.id}`);
@@ -107,12 +113,19 @@ export default function WaiversPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: '#2D3D35', margin: 0 }}>Client Waivers</h2>
-        <input
-          placeholder="Search by name or email…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ padding: '9px 14px', borderRadius: 8, border: '1.5px solid #E4DDD6', fontSize: 14, color: '#2D3D35', outline: 'none', width: 260 }}
-        />
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ padding: '9px 14px', borderRadius: 8, border: '1.5px solid #E4DDD6', fontSize: 14, color: '#2D3D35', outline: 'none', width: 260 }}
+          />
+          {waivers.length > 0 && (
+            <button onClick={purgeAll} style={{ padding: '9px 16px', borderRadius: 8, border: '1.5px solid #fee2e2', background: '#fee2e2', color: '#991b1b', fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Delete all
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
