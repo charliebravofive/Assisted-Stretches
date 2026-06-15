@@ -1521,23 +1521,17 @@ export default function BookingModal({ isOpen, onClose, onNavigate, initialProdu
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <button
                   onClick={() => { onClose(); if (onNavigate) onNavigate('new-patient-form'); }}
-                  style={{ background: C.forest, color: C.bone, border: "none", borderRadius: 10, padding: "20px 24px", cursor: "pointer", textAlign: "left", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 16 }}
+                  style={{ background: C.forest, color: C.bone, border: "none", borderRadius: 10, padding: "20px 24px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
                 >
-                  <span style={{ fontSize: 32, lineHeight: 1, flexShrink: 0 }}>🌱</span>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>New client</div>
-                    <div style={{ fontSize: 13, opacity: 0.75 }}>First visit — complete the New Patient Form before booking</div>
-                  </div>
+                  <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>New client</div>
+                  <div style={{ fontSize: 13, opacity: 0.75 }}>First visit — complete the New Patient Form before booking</div>
                 </button>
                 <button
                   onClick={() => { setCustomerType('returning'); }}
-                  style={{ background: C.white, color: C.forest, border: `1.5px solid ${C.boneDark}`, borderRadius: 10, padding: "20px 24px", cursor: "pointer", textAlign: "left", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 16 }}
+                  style={{ background: C.white, color: C.forest, border: `1.5px solid ${C.boneDark}`, borderRadius: 10, padding: "20px 24px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
                 >
-                  <span style={{ fontSize: 32, lineHeight: 1, flexShrink: 0 }}>👋</span>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Returning client</div>
-                    <div style={{ fontSize: 13, opacity: 0.65 }}>Continue to book your next session</div>
-                  </div>
+                  <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Returning client</div>
+                  <div style={{ fontSize: 13, opacity: 0.65 }}>Continue to book your next session</div>
                 </button>
               </div>
             </div>
