@@ -845,7 +845,7 @@ function HomePage({ onBook, onGiftBook }) {
             <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0, color: "var(--forest-ink)" }}>
               Stretch deeper than you can on your own.
             </h1>
-            <p className="fade-up delay-2" style={{ fontFamily: "var(--font-display)", fontSize: 21, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
+            <p className="fade-up delay-2" style={{ fontFamily: "var(--font-display)", fontSize: 26, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
               A guided 60-minute assisted stretch session using PNF technique that goes where solo stretching cannot — hamstrings, hips, shoulders, lower back.
             </p>
             <div className="fade-up delay-3" style={{ fontSize: 14.5, color: "var(--text-secondary)", marginBottom: 20, opacity: 0 }}>
@@ -869,13 +869,13 @@ function HomePage({ onBook, onGiftBook }) {
       <Section dark>
         <div style={{ maxWidth: 720 }}>
           <SectionTitle>Not massage. Not physio. Not yoga.</SectionTitle>
-          <p style={{ fontSize: 20, lineHeight: 1.8, opacity: 0.82, marginTop: 24 }}>
+          <p style={{ fontSize: 25, lineHeight: 1.8, opacity: 0.82, marginTop: 24 }}>
             Massage therapists work tissue with pressure. Physiotherapists rehabilitate injury. Yoga instructors teach you to move your own body.
           </p>
-          <p style={{ fontSize: 20, lineHeight: 1.8, opacity: 0.82, marginTop: 16 }}>
+          <p style={{ fontSize: 25, lineHeight: 1.8, opacity: 0.82, marginTop: 16 }}>
             Assisted Stretches does something none of them do: a trained practitioner moves your body through targeted, PNF-guided stretches you physically cannot perform alone. It's not recovery-adjacent. It's not movement-adjacent.
           </p>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(15px, 1.875vw, 19.5px)", fontWeight: 400, fontStyle: "italic", opacity: 0.95, marginTop: 28, lineHeight: 1.5 }}>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "clamp(19px, 2.34vw, 24px)", fontWeight: 400, fontStyle: "italic", opacity: 0.95, marginTop: 28, lineHeight: 1.5 }}>
             It's the missing category — a dedicated practice for restoring range, releasing deep tension, and giving your nervous system permission to let go.
           </p>
         </div>
