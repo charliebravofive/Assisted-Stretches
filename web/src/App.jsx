@@ -192,10 +192,10 @@ const globalStyles = `
     .hero-grid > *:last-child  { order: 2; }
 
     /* Nav logo */
-    .nav-logo-wrap svg { width: 172px !important; height: 121px !important; }
+    .nav-logo-wrap svg { width: 215px !important; height: 151px !important; }
 
     /* Footer logo */
-    .footer-logo-wrap svg { width: 172px !important; height: 121px !important; }
+    .footer-logo-wrap svg { width: 215px !important; height: 151px !important; }
     .footer-logo-wrap { margin-bottom: 4px !important; margin-top: -12px !important; margin-left: -10px !important; }
 
     /* 4-col grid → 2 cols on tablet */
@@ -230,7 +230,7 @@ const globalStyles = `
   @media (max-width: 480px) {
     .footer-grid { grid-template-columns: 1fr !important; }
     .benefits-4col { grid-template-columns: 1fr !important; }
-    .nav-logo-wrap svg { width: 138px !important; height: 96px !important; }
+    .nav-logo-wrap svg { width: 172px !important; height: 120px !important; }
 
     /* Pricing cards stack */
     .pricing-grid { grid-template-columns: 1fr !important; }
