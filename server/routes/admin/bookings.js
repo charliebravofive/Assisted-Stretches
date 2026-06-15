@@ -40,13 +40,14 @@ router.post('/', (req, res) => {
 
 // GET / — list all bookings, sorted by session_date desc
 router.get('/', (req, res) => {
-  let bookings = store.bookings.list();
+  let bookings = store.bookings.list().filter(b => b.status !== 'cancelled');
 
   const { search, status } = req.query;
   if (search) {
     const q = search.toLowerCase();
     bookings = bookings.filter(b =>
-      (b.name && b.name.toLowerCase().includes(q)) ||
+      (b.first_name && b.first_name.toLowerCase().includes(q)) ||
+      (b.last_name && b.last_name.toLowerCase().includes(q)) ||
       (b.email && b.email.toLowerCase().includes(q))
     );
   }
