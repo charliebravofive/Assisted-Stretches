@@ -995,19 +995,48 @@ function ContactPage() {
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, lineHeight: 1.06, color: "var(--forest-ink)", marginBottom: 16 }}>Send us an enquiry.</h1>
           <p style={{ fontSize: 19.5, color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 32 }}>We'll respond within one business day.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {[
-              { icon: "✉", label: "Email", value: "hello@assistedstretches.com" },
-              { icon: "◎", label: "Location", value: <a href="https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171" target="_blank" rel="noopener noreferrer" style={{ color: "var(--forest-ink)", textDecoration: "underline" }}>41 Barton Parade, Balmoral QLD 4171</a> },
-              { icon: "◆", label: "Response time", value: "Within one business day" },
-            ].map((item, i) => (
-              <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>{item.icon}</span>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 2 }}>{item.label.toUpperCase()}</div>
-                  <div style={{ fontSize: 15, color: "var(--forest-ink)" }}>{item.value}</div>
+            {/* Email */}
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>✉</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 2 }}>EMAIL</div>
+                <div style={{ fontSize: 15, color: "var(--forest-ink)" }}>hello@assistedstretches.com</div>
+              </div>
+            </div>
+
+            {/* Location */}
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>◎</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 2 }}>LOCATION</div>
+                <div style={{ fontSize: 15, color: "var(--forest-ink)" }}>
+                  <a href="https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171" target="_blank" rel="noopener noreferrer" style={{ color: "var(--forest-ink)", textDecoration: "underline" }}>41 Barton Parade, Balmoral QLD 4171</a>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Google Map — under location, above response time */}
+            <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--bone-dark)", height: 140 }}>
+              <iframe
+                title="Assisted Stretches location"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.1!2d153.0570!3d-27.4694!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s41+Barton+Parade%2C+Balmoral+QLD+4171!5e0!3m2!1sen!2sau!4v1"
+                width="100%"
+                height="140"
+                style={{ border: 0, display: "block" }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+            {/* Response time */}
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <span style={{ color: "var(--deep-clay)", fontSize: 16, marginTop: 2 }}>◆</span>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: 2 }}>RESPONSE TIME</div>
+                <div style={{ fontSize: 15, color: "var(--forest-ink)" }}>Within one business day</div>
+              </div>
+            </div>
 
             {/* Opening hours */}
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
@@ -1030,19 +1059,6 @@ function ContactPage() {
             </div>
           </div>
 
-          {/* Google Map — under location info */}
-          <div style={{ borderRadius: 10, overflow: "hidden", marginTop: 24, border: "1px solid var(--bone-dark)", height: 140 }}>
-            <iframe
-              title="Assisted Stretches location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.1!2d153.0570!3d-27.4694!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s41+Barton+Parade%2C+Balmoral+QLD+4171!5e0!3m2!1sen!2sau!4v1"
-              width="100%"
-              height="140"
-              style={{ border: 0, display: "block" }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
         </div>
         {/* Right — form */}
         <div>
