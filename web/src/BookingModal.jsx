@@ -1220,8 +1220,6 @@ function Confirmation({ booking, onClose, isGiftFlow }) {
         <div>↩️ <strong style={{ color: C.forest }}>Cancel / reschedule:</strong> Up to 24 hours before</div>
       </div>
       <div style={{ background: C.forest, borderRadius: 12, padding: "20px 24px", marginBottom: 28, textAlign: "left" }}>
-        <p style={{ color: C.bone, fontSize: 13.5, lineHeight: 1.7, margin: "0 0 14px" }}>If this is your first visit, please complete the New Patient Form before your appointment.</p>
-        <a href="https://www.assistedstretches.com/#/new-patient-form" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: C.terracotta, color: C.bone, textDecoration: "none", padding: "10px 22px", borderRadius: 6, fontSize: 13.5, fontWeight: 600 }}>New Patient Form →</a>
       </div>
       <button onClick={onClose} style={{ ...btn("primary"), padding: "14px 40px", fontSize: 15 }}>Done</button>
     </div>
