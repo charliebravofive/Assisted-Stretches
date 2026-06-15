@@ -23,7 +23,7 @@ const DAY_LABELS  = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 const AVAILABLE_DAYS = new Set([0, 5, 6]);
 
 // ── Business launch date ──────────────────────────────────────
-const BUSINESS_OPEN_DATE = new Date(2026, 5, 20); // 20 June 2026 (Saturday)
+const BUSINESS_OPEN_DATE = new Date(2026, 5, 19); // 19 June 2026 (Friday)
 BUSINESS_OPEN_DATE.setHours(0, 0, 0, 0);
 
 function getBookingDateBounds() {
