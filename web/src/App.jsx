@@ -210,6 +210,11 @@ const globalStyles = `
     /* Reduce section vertical padding */
     section { padding-top: 36px !important; padding-bottom: 36px !important; }
 
+    /* Home hero: tighter padding + hide long paragraph so photo is above fold */
+    .home-hero-section { padding-top: 10px !important; padding-bottom: 20px !important; }
+    .home-hero-grid { gap: 16px !important; }
+    .home-hero-p { display: none !important; }
+
     /* Reduce container padding */
     .container-inner { padding-left: 18px !important; padding-right: 18px !important; }
 
@@ -836,8 +841,8 @@ function HomePage({ onBook, onGiftBook }) {
   return (
     <>
       {/* Session pricing hero — top of page */}
-      <Section style={{ paddingTop: 40, paddingBottom: 48 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "center" }} className="hero-grid">
+      <Section style={{ paddingTop: 40, paddingBottom: 48 }} className="home-hero-section">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 44, alignItems: "center" }} className="hero-grid home-hero-grid">
           <div>
             <div className="fade-up" style={{ opacity: 0 }}>
               <div style={{ fontSize: 11.5, fontWeight: 500, letterSpacing: "0.16em", color: "var(--deep-clay)", marginBottom: 14 }}>ONE-ON-ONE · 60 MINUTES · BRISBANE STUDIO</div>
@@ -845,7 +850,7 @@ function HomePage({ onBook, onGiftBook }) {
             <h1 className="fade-up delay-1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 5vw, 52px)", fontWeight: 400, lineHeight: 1.06, letterSpacing: "-0.02em", marginBottom: 18, opacity: 0, color: "var(--forest-ink)" }}>
               Stretch deeper than you can on your own.
             </h1>
-            <p className="fade-up delay-2" style={{ fontFamily: "var(--font-display)", fontSize: 26, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
+            <p className="fade-up delay-2 home-hero-p" style={{ fontFamily: "var(--font-display)", fontSize: 26, lineHeight: 1.5, fontStyle: "italic", color: "var(--forest-ink)", maxWidth: 460, marginBottom: 22, opacity: 0 }}>
               A guided 60-minute assisted stretch session using PNF technique that goes where solo stretching cannot — hamstrings, hips, shoulders, lower back.
             </p>
             <div className="fade-up delay-3" style={{ fontSize: 14.5, color: "var(--text-secondary)", marginBottom: 20, opacity: 0 }}>
