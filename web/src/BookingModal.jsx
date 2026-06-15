@@ -274,12 +274,8 @@ function DateStep({ value, onChange, minDate, maxDate, sessionNum, maxSessions, 
   const maxView  = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), 1) : null;
   const canNext  = !maxView || new Date(year, month + 1, 1) <= maxView;
 
-  // Note shown under calendar — shows both opening date (if pre-launch) and booking window
-  const isPreLaunch = today < BUSINESS_OPEN_DATE;
   const rangeNote = maxDate
-    ? (isPreLaunch
-        ? `Bookings open from ${BUSINESS_OPEN_DATE.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })} · up to 3 months in advance`
-        : `Bookings available up to ${maxDate.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}`)
+    ? `Bookings available up to ${maxDate.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}`
     : null;
 
   // Holidays visible in the current month view
