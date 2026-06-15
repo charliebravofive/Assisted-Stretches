@@ -997,7 +997,7 @@ function ContactPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {[
               { icon: "✉", label: "Email", value: "hello@assistedstretches.com" },
-              { icon: "◎", label: "Location", value: "41 Barton Parade, Balmoral QLD 4171" },
+              { icon: "◎", label: "Location", value: <a href="https://maps.google.com/?q=41+Barton+Parade,+Balmoral+QLD+4171" target="_blank" rel="noopener noreferrer" style={{ color: "var(--forest-ink)", textDecoration: "underline" }}>41 Barton Parade, Balmoral QLD 4171</a> },
               { icon: "◆", label: "Response time", value: "Within one business day" },
             ].map((item, i) => (
               <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
