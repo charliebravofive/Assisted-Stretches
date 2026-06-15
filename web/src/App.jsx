@@ -955,7 +955,7 @@ function AboutPage({ onBook }) {
               <img src="/about-section.jpg" alt="Practitioner guiding an upper body stretch" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 45%", filter: "grayscale(100%) contrast(1.05)" }} />
             </div>
             <div className="practitioner-photo-wrap" style={{ textAlign: "center", marginTop: 170 }}>
-              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "25%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto", filter: "grayscale(100%) contrast(1.05)" }} />
+              <img src="/practitioner.jpg" alt="Your practitioner" style={{ width: "25%", height: "auto", borderRadius: 14, display: "block", margin: "0 auto" }} />
               <div style={{ marginTop: 8, fontFamily: "var(--font-display)", fontSize: 18, fontStyle: "italic", fontWeight: 700, color: "var(--forest-ink)", opacity: 0.75 }}>Coley</div>
             </div>
           </div>
